@@ -58,14 +58,14 @@ static void __user *sig_handler(struct task_struct *t, int sig)
 	return t->sighand->action[sig - 1].sa.sa_handler;
 }
 
-static int sig_handler_ignored(void __user *handler, int sig)
+static bool sig_handler_ignored(void __user *handler, int sig)
 {
 	/* Is it explicitly or implicitly ignored? */
 	return handler == SIG_IGN ||
 		(handler == SIG_DFL && sig_kernel_ignore(sig));
 }
 
-static int sig_task_ignored(struct task_struct *t, int sig, bool force)
+static bool sig_task_ignored(struct task_struct *t, int sig, bool force)
 {
 	void __user *handler;
 
@@ -73,12 +73,12 @@ static int sig_task_ignored(struct task_struct *t, int sig, bool force)
 
 	if (unlikely(t->signal->flags & SIGNAL_UNKILLABLE) &&
 			handler == SIG_DFL && !force)
-		return 1;
+		return true;
 
 	return sig_handler_ignored(handler, sig);
 }
 
-static int sig_ignored(struct task_struct *t, int sig, bool force)
+static bool sig_ignored(struct task_struct *t, int sig, bool force)
 {
 	/*
 	 * Blocked signals are never ignored, since the
@@ -86,10 +86,10 @@ static int sig_ignored(struct task_struct *t, int sig, bool force)
 	 * unblocked.
 	 */
 	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
-		return 0;
+		return false;
 
 	if (!sig_task_ignored(t, sig, force))
-		return 0;
+		return false;
 
 	/*
 	 * Tracers may want to know about even ignored signals.
@@ -101,7 +101,7 @@ static int sig_ignored(struct task_struct *t, int sig, bool force)
  * Re-calculate pending state from the set of locally pending
  * signals, globally pending signals, and blocked signals.
  */
-static inline int has_pending_signals(sigset_t *signal, sigset_t *blocked)
+static inline bool has_pending_signals(sigset_t *signal, sigset_t *blocked)
 {
 	unsigned long ready;
 	long i;
@@ -129,20 +129,20 @@ static inline int has_pending_signals(sigset_t *signal, sigset_t *blocked)
 
 #define PENDING(p,b) has_pending_signals(&(p)->signal, (b))
 
-static int recalc_sigpending_tsk(struct task_struct *t)
+static bool recalc_sigpending_tsk(struct task_struct *t)
 {
 	if ((t->jobctl & JOBCTL_PENDING_MASK) ||
 	    PENDING(&t->pending, &t->blocked) ||
 	    PENDING(&t->signal->shared_pending, &t->blocked)) {
 		set_tsk_thread_flag(t, TIF_SIGPENDING);
-		return 1;
+		return true;
 	}
 	/*
 	 * We must never clear the flag in another thread, or in current
 	 * when it's possible the current syscall is returning -ERESTART*.
 	 * So we don't clear it here, and only callers who know they should do.
 	 */
-	return 0;
+	return false;
 }
 
 /*
@@ -358,7 +358,7 @@ static bool task_participate_group_stop(struct task_struct *task)
  *   appropriate lock must be held to stop the target task from exiting
  */
 static struct sigqueue *
-__sigqueue_alloc(int sig, struct task_struct *t, gfp_t flags, int override_rlimit)
+__sigqueue_alloc(int sig, struct task_struct *t, gfp_t flags, bool override_rlimit)
 {
 	struct sigqueue *q = NULL;
 	struct user_struct *user;
@@ -726,7 +726,7 @@ static int flush_sigqueue_mask(sigset_t *mask, struct sigpending *s)
 	return 1;
 }
 
-static inline int is_si_special(const struct siginfo *info)
+static inline bool is_si_special(const struct siginfo *info)
 {
 	return info <= SEND_SIG_FORCED;
 }
@@ -1025,7 +1025,7 @@ static int __send_signal(int sig, struct siginfo *info, struct task_struct *t,
 {
 	struct sigpending *pending;
 	struct sigqueue *q;
-	int override_rlimit;
+	bool override_rlimit;
 	int ret = 0, result;
 
 	assert_spin_locked(&t->sighand->siglock);
@@ -1065,7 +1065,7 @@ static int __send_signal(int sig, struct siginfo *info, struct task_struct *t,
 	if (sig < SIGRTMIN)
 		override_rlimit = (is_si_special(info) || info->si_code >= 0);
 	else
-		override_rlimit = 0;
+		override_rlimit = false;
 
 	q = __sigqueue_alloc(sig, t, GFP_ATOMIC | __GFP_NOTRACK_FALSE_POSITIVE,
 		override_rlimit);
@@ -1359,14 +1359,14 @@ int kill_proc_info(int sig, struct siginfo *info, pid_t pid)
 	return error;
 }
 
-static int kill_as_cred_perm(const struct cred *cred,
+static bool kill_as_cred_perm(const struct cred *cred,
 			     struct task_struct *target)
 {
 	const struct cred *pcred = __task_cred(target);
 	if (!uid_eq(cred->euid, pcred->suid) && !uid_eq(cred->euid, pcred->uid) &&
 	    !uid_eq(cred->uid,  pcred->suid) && !uid_eq(cred->uid,  pcred->uid))
-		return 0;
-	return 1;
+		return false;
+	return true;
 }
 
 /* like kill_pid_info(), but doesn't use uid/euid of "current" */
@@ -1528,7 +1528,7 @@ EXPORT_SYMBOL(kill_pid);
  */
 struct sigqueue *sigqueue_alloc(void)
 {
-	struct sigqueue *q = __sigqueue_alloc(-1, current, GFP_KERNEL, 0);
+	struct sigqueue *q = __sigqueue_alloc(-1, current, GFP_KERNEL, false);
 
 	if (q)
 		q->flags |= SIGQUEUE_PREALLOC;
@@ -1772,10 +1772,10 @@ static void do_notify_parent_cldstop(struct task_struct *tsk,
 	spin_unlock_irqrestore(&sighand->siglock, flags);
 }
 
-static inline int may_ptrace_stop(void)
+static inline bool may_ptrace_stop(void)
 {
 	if (!likely(current->ptrace))
-		return 0;
+		return false;
 	/*
 	 * Are we in the middle of do_coredump?
 	 * If so and our tracer is also part of the coredump stopping
@@ -1791,9 +1791,9 @@ static inline int may_ptrace_stop(void)
 	 */
 	if (unlikely(current->mm->core_state) &&
 	    unlikely(current->mm == current->parent->mm))
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
 /*
