@@ -740,7 +740,7 @@ static inline bool si_fromuser(const struct siginfo *info)
 /*
  * called with RCU read lock from check_kill_permission()
  */
-static int kill_ok_by_cred(struct task_struct *t)
+static bool kill_ok_by_cred(struct task_struct *t)
 {
 	const struct cred *cred = current_cred();
 	const struct cred *tcred = __task_cred(t);
@@ -749,12 +749,12 @@ static int kill_ok_by_cred(struct task_struct *t)
 	    uid_eq(cred->euid, tcred->uid)  ||
 	    uid_eq(cred->uid,  tcred->suid) ||
 	    uid_eq(cred->uid,  tcred->uid))
-		return 1;
+		return true;
 
 	if (ns_capable(tcred->user_ns, CAP_KILL))
-		return 1;
+		return true;
 
-	return 0;
+	return false;
 }
 
 /*
@@ -905,16 +905,16 @@ static bool prepare_signal(int sig, struct task_struct *p, bool force)
  * as soon as they're available, so putting the signal on the shared queue
  * will be equivalent to sending it to one such thread.
  */
-static inline int wants_signal(int sig, struct task_struct *p)
+static inline bool wants_signal(int sig, struct task_struct *p)
 {
 	if (sigismember(&p->blocked, sig))
-		return 0;
+		return false;
 	if (p->flags & PF_EXITING)
-		return 0;
+		return false;
 	if (sig == SIGKILL)
-		return 1;
+		return true;
 	if (task_is_stopped_or_traced(p))
-		return 0;
+		return false;
 	return task_curr(p) || !signal_pending(p);
 }
 
@@ -994,7 +994,7 @@ static void complete_signal(int sig, struct task_struct *p, int group)
 	return;
 }
 
-static inline int legacy_queue(struct sigpending *signals, int sig)
+static inline bool legacy_queue(struct sigpending *signals, int sig)
 {
 	return (sig < SIGRTMIN) && sigismember(&signals->signal, sig);
 }
@@ -1797,10 +1797,10 @@ static inline bool may_ptrace_stop(void)
 }
 
 /*
- * Return non-zero if there is a SIGKILL that should be waking us up.
+ * Return true if there is a SIGKILL that should be waking us up.
  * Called with the siglock held.
  */
-static int sigkill_pending(struct task_struct *tsk)
+static bool sigkill_pending(struct task_struct *tsk)
 {
 	return	sigismember(&tsk->pending.signal, SIGKILL) ||
 		sigismember(&tsk->signal->shared_pending.signal, SIGKILL);
