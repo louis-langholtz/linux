@@ -772,10 +772,10 @@ static inline void blk_free_request(struct request_list *rl, struct request *rq)
  * ioc_batching returns true if the ioc is a valid batching request and
  * should be given priority access to a request.
  */
-static inline int ioc_batching(struct request_queue *q, struct io_context *ioc)
+static inline bool ioc_batching(struct request_queue *q, struct io_context *ioc)
 {
 	if (!ioc)
-		return 0;
+		return false;
 
 	/*
 	 * Make sure the process is able to allocate at least 1 request

@@ -117,21 +117,21 @@ void blk_recount_segments(struct request_queue *q, struct bio *bio)
 }
 EXPORT_SYMBOL(blk_recount_segments);
 
-static int blk_phys_contig_segment(struct request_queue *q, struct bio *bio,
+static bool blk_phys_contig_segment(struct request_queue *q, struct bio *bio,
 				   struct bio *nxt)
 {
 	struct bio_vec end_bv = { NULL }, nxt_bv;
 	struct bvec_iter iter;
 
 	if (!blk_queue_cluster(q))
-		return 0;
+		return false;
 
 	if (bio->bi_seg_back_size + nxt->bi_seg_front_size >
 	    queue_max_segment_size(q))
-		return 0;
+		return false;
 
 	if (!bio_has_data(bio))
-		return 1;
+		return true;
 
 	bio_for_each_segment(end_bv, bio, iter)
 		if (end_bv.bv_len == iter.bi_size)
@@ -140,16 +140,16 @@ static int blk_phys_contig_segment(struct request_queue *q, struct bio *bio,
 	nxt_bv = bio_iovec(nxt);
 
 	if (!BIOVEC_PHYS_MERGEABLE(&end_bv, &nxt_bv))
-		return 0;
+		return false;
 
 	/*
 	 * bio and nxt are contiguous in memory; check if the queue allows
 	 * these two to be merged into one
 	 */
 	if (BIOVEC_SEG_BOUNDARY(q, &end_bv, &nxt_bv))
-		return 1;
+		return true;
 
-	return 0;
+	return false;
 }
 
 static inline void
@@ -309,7 +309,7 @@ int blk_bio_map_sg(struct request_queue *q, struct bio *bio,
 }
 EXPORT_SYMBOL(blk_bio_map_sg);
 
-static inline int ll_new_hw_segment(struct request_queue *q,
+static inline bool ll_new_hw_segment(struct request_queue *q,
 				    struct request *req,
 				    struct bio *bio)
 {
@@ -326,13 +326,13 @@ static inline int ll_new_hw_segment(struct request_queue *q,
 	 * counters.
 	 */
 	req->nr_phys_segments += nr_phys_segs;
-	return 1;
+	return true;
 
 no_merge:
 	req->cmd_flags |= REQ_NOMERGE;
 	if (req == q->last_merge)
 		q->last_merge = NULL;
-	return 0;
+	return false;
 }
 
 int ll_back_merge_fn(struct request_queue *q, struct request *req,
@@ -382,7 +382,7 @@ static bool req_no_special_merge(struct request *req)
 	return !q->mq_ops && req->special;
 }
 
-static int ll_merge_requests_fn(struct request_queue *q, struct request *req,
+static bool ll_merge_requests_fn(struct request_queue *q, struct request *req,
 				struct request *next)
 {
 	int total_phys_segments;
@@ -394,14 +394,14 @@ static int ll_merge_requests_fn(struct request_queue *q, struct request *req,
 	 * requests.  Can't merge them if they are.
 	 */
 	if (req_no_special_merge(req) || req_no_special_merge(next))
-		return 0;
+		return false;
 
 	/*
 	 * Will it become too large?
 	 */
 	if ((blk_rq_sectors(req) + blk_rq_sectors(next)) >
 	    blk_rq_get_max_sectors(req))
-		return 0;
+		return false;
 
 	total_phys_segments = req->nr_phys_segments + next->nr_phys_segments;
 	if (blk_phys_contig_segment(q, req->biotail, next->bio)) {
@@ -413,14 +413,14 @@ static int ll_merge_requests_fn(struct request_queue *q, struct request *req,
 	}
 
 	if (total_phys_segments > queue_max_segments(q))
-		return 0;
+		return false;
 
 	if (blk_integrity_merge_rq(q, req, next) == false)
-		return 0;
+		return false;
 
 	/* Merge is OK... */
 	req->nr_phys_segments = total_phys_segments;
-	return 1;
+	return true;
 }
 
 /**

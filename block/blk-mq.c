@@ -1610,7 +1610,7 @@ static int blk_mq_init_hctx(struct request_queue *q,
 	return -1;
 }
 
-static int blk_mq_init_hw_queues(struct request_queue *q,
+static bool blk_mq_init_hw_queues(struct request_queue *q,
 		struct blk_mq_tag_set *set)
 {
 	struct blk_mq_hw_ctx *hctx;
@@ -1625,14 +1625,14 @@ static int blk_mq_init_hw_queues(struct request_queue *q,
 	}
 
 	if (i == q->nr_hw_queues)
-		return 0;
+		return false;
 
 	/*
 	 * Init failed
 	 */
 	blk_mq_exit_hw_queues(q, set, i);
 
-	return 1;
+	return true;
 }
 
 static void blk_mq_init_cpu_queues(struct request_queue *q,
