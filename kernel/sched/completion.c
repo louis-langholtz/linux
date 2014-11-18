@@ -254,8 +254,8 @@ EXPORT_SYMBOL(wait_for_completion_killable_timeout);
  *	try_wait_for_completion - try to decrement a completion without blocking
  *	@x:	completion structure
  *
- *	Return: 0 if a decrement cannot be done without blocking
- *		 1 if a decrement succeeded.
+ *	Return: %false if a decrement cannot be done without blocking
+ *		 %true if a decrement succeeded.
  *
  *	If a completion is being used as a counting completion,
  *	attempt to decrement the counter without blocking. This
@@ -265,11 +265,11 @@ EXPORT_SYMBOL(wait_for_completion_killable_timeout);
 bool try_wait_for_completion(struct completion *x)
 {
 	unsigned long flags;
-	int ret = 1;
+	bool ret = true;
 
 	spin_lock_irqsave(&x->wait.lock, flags);
 	if (!x->done)
-		ret = 0;
+		ret = false;
 	else
 		x->done--;
 	spin_unlock_irqrestore(&x->wait.lock, flags);
@@ -281,18 +281,18 @@ EXPORT_SYMBOL(try_wait_for_completion);
  *	completion_done - Test to see if a completion has any waiters
  *	@x:	completion structure
  *
- *	Return: 0 if there are waiters (wait_for_completion() in progress)
- *		 1 if there are no waiters.
+ *	Return: %false if there are waiters (wait_for_completion() in progress)
+ *		 %true if there are no waiters.
  *
  */
 bool completion_done(struct completion *x)
 {
 	unsigned long flags;
-	int ret = 1;
+	bool ret = true;
 
 	spin_lock_irqsave(&x->wait.lock, flags);
 	if (!x->done)
-		ret = 0;
+		ret = false;
 	spin_unlock_irqrestore(&x->wait.lock, flags);
 	return ret;
 }

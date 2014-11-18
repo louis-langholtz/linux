@@ -1128,7 +1128,7 @@ void setup_new_exec(struct linux_binprm * bprm)
 	/* An exec changes our domain. We are no longer part of the thread
 	   group */
 	current->self_exec_id++;
-	flush_signal_handlers(current, 0);
+	flush_signal_handlers(current, false);
 	do_close_on_exec(current->files);
 }
 EXPORT_SYMBOL(setup_new_exec);

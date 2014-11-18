@@ -133,7 +133,7 @@ static inline void tracehook_report_syscall_exit(struct pt_regs *regs, int step)
 
 /**
  * tracehook_signal_handler - signal handler setup is complete
- * @stepping:		nonzero if debugger single-step or block-step in use
+ * @stepping:		%true if debugger single-step or block-step in use
  *
  * Called by the arch code after a signal handler has been set up.
  * Register and stack state reflects the user handler about to run.
@@ -142,7 +142,7 @@ static inline void tracehook_report_syscall_exit(struct pt_regs *regs, int step)
  * Called without locks, shortly before returning to user mode
  * (or handling more signals).
  */
-static inline void tracehook_signal_handler(int stepping)
+static inline void tracehook_signal_handler(bool stepping)
 {
 	if (stepping)
 		ptrace_notify(SIGTRAP);

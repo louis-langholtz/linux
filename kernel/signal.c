@@ -481,7 +481,7 @@ void ignore_signals(struct task_struct *t)
  */
 
 void
-flush_signal_handlers(struct task_struct *t, int force_default)
+flush_signal_handlers(struct task_struct *t, bool force_default)
 {
 	int i;
 	struct k_sigaction *ka = &t->sighand->action[0];
@@ -497,13 +497,13 @@ flush_signal_handlers(struct task_struct *t, int force_default)
 	}
 }
 
-int unhandled_signal(struct task_struct *tsk, int sig)
+bool unhandled_signal(struct task_struct *tsk, int sig)
 {
 	void __user *handler = tsk->sighand->action[sig-1].sa.sa_handler;
 	if (is_global_init(tsk))
-		return 1;
+		return true;
 	if (handler != SIG_IGN && handler != SIG_DFL)
-		return 0;
+		return false;
 	/* if ptraced, let the tracer determine */
 	return !tsk->ptrace;
 }
@@ -703,18 +703,18 @@ void signal_wake_up_state(struct task_struct *t, unsigned int state)
 
 /*
  * Remove signals in mask from the pending set and queue.
- * Returns 1 if any signals were found.
+ * Returns true if any signals were found.
  *
  * All callers must be holding the siglock.
  */
-static int flush_sigqueue_mask(sigset_t *mask, struct sigpending *s)
+static bool flush_sigqueue_mask(sigset_t *mask, struct sigpending *s)
 {
 	struct sigqueue *q, *n;
 	sigset_t m;
 
 	sigandsets(&m, mask, &s->signal);
 	if (sigisemptyset(&m))
-		return 0;
+		return false;
 
 	sigandnsets(&s->signal, &s->signal, mask);
 	list_for_each_entry_safe(q, n, &s->list, list) {
@@ -723,7 +723,7 @@ static int flush_sigqueue_mask(sigset_t *mask, struct sigpending *s)
 			__sigqueue_free(q);
 		}
 	}
-	return 1;
+	return true;
 }
 
 static inline bool is_si_special(const struct siginfo *info)
@@ -1021,7 +1021,7 @@ static inline void userns_fixup_signal_uid(struct siginfo *info, struct task_str
 #endif
 
 static int __send_signal(int sig, struct siginfo *info, struct task_struct *t,
-			int group, int from_ancestor_ns)
+			int group, bool from_ancestor_ns)
 {
 	struct sigpending *pending;
 	struct sigqueue *q;
@@ -1127,7 +1127,7 @@ ret:
 static int send_signal(int sig, struct siginfo *info, struct task_struct *t,
 			int group)
 {
-	int from_ancestor_ns = 0;
+	bool from_ancestor_ns = false;
 
 #ifdef CONFIG_PID_NS
 	from_ancestor_ns = si_fromuser(info) &&
@@ -1396,7 +1396,7 @@ int kill_pid_info_as_cred(int sig, struct siginfo *info, struct pid *pid,
 
 	if (sig) {
 		if (lock_task_sighand(p, &flags)) {
-			ret = __send_signal(sig, info, p, 1, 0);
+			ret = __send_signal(sig, info, p, 1, false);
 			unlock_task_sighand(p, &flags);
 		} else
 			ret = -ESRCH;
@@ -2170,7 +2170,7 @@ static int ptrace_signal(int signr, siginfo_t *info)
 	return signr;
 }
 
-int get_signal(struct ksignal *ksig)
+bool get_signal(struct ksignal *ksig)
 {
 	struct sighand_struct *sighand = current->sighand;
 	struct signal_struct *signal = current->signal;
@@ -2180,7 +2180,7 @@ int get_signal(struct ksignal *ksig)
 		task_work_run();
 
 	if (unlikely(uprobe_deny_signal()))
-		return 0;
+		return false;
 
 	/*
 	 * Do this once, we can't return to user-mode if freezing() == T.
@@ -2359,14 +2359,14 @@ relock:
 /**
  * signal_delivered - 
  * @ksig:		kernel signal struct
- * @stepping:		nonzero if debugger single-step or block-step in use
+ * @stepping:		%true if debugger single-step or block-step in use
  *
  * This function should be called when a signal has successfully been
  * delivered. It updates the blocked signals accordingly (@ksig->ka.sa.sa_mask
  * is always blocked, and the signal itself is blocked unless %SA_NODEFER
  * is set in @ksig->ka.sa.sa_flags.  Tracing is notified.
  */
-static void signal_delivered(struct ksignal *ksig, int stepping)
+static void signal_delivered(struct ksignal *ksig, bool stepping)
 {
 	sigset_t blocked;
 
@@ -2383,7 +2383,7 @@ static void signal_delivered(struct ksignal *ksig, int stepping)
 	tracehook_signal_handler(stepping);
 }
 
-void signal_setup_done(int failed, struct ksignal *ksig, int stepping)
+void signal_setup_done(bool failed, struct ksignal *ksig, bool stepping)
 {
 	if (failed)
 		force_sigsegv(ksig->sig, current);

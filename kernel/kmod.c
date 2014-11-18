@@ -228,7 +228,7 @@ static int ____call_usermodehelper(void *data)
 	int retval;
 
 	spin_lock_irq(&current->sighand->siglock);
-	flush_signal_handlers(current, 1);
+	flush_signal_handlers(current, true);
 	spin_unlock_irq(&current->sighand->siglock);
 
 	/* We can run anywhere, unlike our parent keventd(). */

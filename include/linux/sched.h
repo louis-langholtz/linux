@@ -2209,8 +2209,8 @@ static inline int task_nice(const struct task_struct *p)
 	return PRIO_TO_NICE((p)->static_prio);
 }
 extern int can_nice(const struct task_struct *p, const int nice);
-extern int task_curr(const struct task_struct *p);
-extern int idle_cpu(int cpu);
+extern bool task_curr(const struct task_struct *p);
+extern bool idle_cpu(int cpu);
 extern int sched_setscheduler(struct task_struct *, int,
 			      const struct sched_param *);
 extern int sched_setscheduler_nocheck(struct task_struct *, int,
@@ -2303,7 +2303,7 @@ extern void proc_caches_init(void);
 extern void flush_signals(struct task_struct *);
 extern void __flush_signals(struct task_struct *);
 extern void ignore_signals(struct task_struct *);
-extern void flush_signal_handlers(struct task_struct *, int force_default);
+extern void flush_signal_handlers(struct task_struct *, bool force_default);
 extern int dequeue_signal(struct task_struct *tsk, sigset_t *mask, siginfo_t *info);
 
 static inline int dequeue_signal_lock(struct task_struct *tsk, sigset_t *mask, siginfo_t *info)

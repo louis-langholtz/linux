@@ -1001,9 +1001,9 @@ static int effective_prio(struct task_struct *p)
  * task_curr - is this task currently executing on a CPU?
  * @p: the task in question.
  *
- * Return: 1 if the task is currently executing. 0 otherwise.
+ * Return: %true if the task is currently executing. %false otherwise.
  */
-inline int task_curr(const struct task_struct *p)
+inline bool task_curr(const struct task_struct *p)
 {
 	return cpu_curr(task_cpu(p)) == p;
 }
@@ -1675,11 +1675,12 @@ static void ttwu_queue(struct task_struct *p, int cpu)
  * Return: %true if @p was woken up, %false if it was already running.
  * or @state didn't match @p's state.
  */
-static int
+static bool
 try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
 {
 	unsigned long flags;
-	int cpu, success = 0;
+	int cpu;
+	bool success = false;
 
 	/*
 	 * If we are going to wake up a thread waiting for CONDITION we
@@ -1692,7 +1693,7 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
 	if (!(p->state & state))
 		goto out;
 
-	success = 1; /* we're going to change ->state */
+	success = true; /* we're going to change ->state */
 	cpu = task_cpu(p);
 
 	if (p->on_rq && ttwu_remote(p, wake_flags))
@@ -3241,24 +3242,24 @@ int task_prio(const struct task_struct *p)
  * idle_cpu - is a given cpu idle currently?
  * @cpu: the processor in question.
  *
- * Return: 1 if the CPU is currently idle. 0 otherwise.
+ * Return: %true if the CPU is currently idle. %false otherwise.
  */
-int idle_cpu(int cpu)
+bool idle_cpu(int cpu)
 {
 	struct rq *rq = cpu_rq(cpu);
 
 	if (rq->curr != rq->idle)
-		return 0;
+		return false;
 
 	if (rq->nr_running)
-		return 0;
+		return false;
 
 #ifdef CONFIG_SMP
 	if (!llist_empty(&rq->wake_list))
-		return 0;
+		return false;
 #endif
 
-	return 1;
+	return true;
 }
 
 /**
@@ -4787,12 +4788,12 @@ EXPORT_SYMBOL_GPL(set_cpus_allowed_ptr);
  * So we race with normal scheduler movements, but that's OK, as long
  * as the task is no longer on this CPU.
  *
- * Returns non-zero if task was successfully migrated.
+ * Returns true if task was successfully migrated.
  */
-static int __migrate_task(struct task_struct *p, int src_cpu, int dest_cpu)
+static bool __migrate_task(struct task_struct *p, bool src_cpu, int dest_cpu)
 {
 	struct rq *rq;
-	int ret = 0;
+	bool ret = false;
 
 	if (unlikely(!cpu_active(dest_cpu)))
 		return ret;
@@ -4816,7 +4817,7 @@ static int __migrate_task(struct task_struct *p, int src_cpu, int dest_cpu)
 	if (task_on_rq_queued(p))
 		rq = move_queued_task(p, dest_cpu);
 done:
-	ret = 1;
+	ret = true;
 fail:
 	raw_spin_unlock(&rq->lock);
 	raw_spin_unlock(&p->pi_lock);
@@ -5489,10 +5490,10 @@ static inline bool sched_debug(void)
 }
 #endif /* CONFIG_SCHED_DEBUG */
 
-static int sd_degenerate(struct sched_domain *sd)
+static bool sd_degenerate(struct sched_domain *sd)
 {
 	if (cpumask_weight(sched_domain_span(sd)) == 1)
-		return 1;
+		return true;
 
 	/* Following flags need at least 2 groups */
 	if (sd->flags & (SD_LOAD_BALANCE |
@@ -5503,26 +5504,26 @@ static int sd_degenerate(struct sched_domain *sd)
 			 SD_SHARE_PKG_RESOURCES |
 			 SD_SHARE_POWERDOMAIN)) {
 		if (sd->groups != sd->groups->next)
-			return 0;
+			return false;
 	}
 
 	/* Following flags don't use groups */
 	if (sd->flags & (SD_WAKE_AFFINE))
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
-static int
+static bool
 sd_parent_degenerate(struct sched_domain *sd, struct sched_domain *parent)
 {
 	unsigned long cflags = sd->flags, pflags = parent->flags;
 
 	if (sd_degenerate(parent))
-		return 1;
+		return true;
 
 	if (!cpumask_equal(sched_domain_span(sd), sched_domain_span(parent)))
-		return 0;
+		return false;
 
 	/* Flags needing groups don't count if only 1 group in parent */
 	if (parent->groups == parent->groups->next) {
@@ -5538,9 +5539,9 @@ sd_parent_degenerate(struct sched_domain *sd, struct sched_domain *parent)
 			pflags &= ~SD_SERIALIZE;
 	}
 	if (~cflags & pflags)
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
 static void free_rootdomain(struct rcu_head *rcu)
@@ -6281,7 +6282,7 @@ static const struct cpumask *sd_numa_mask(int cpu)
 
 static void sched_numa_warn(const char *str)
 {
-	static int done = false;
+	static bool done = false;
 	int i,j;
 
 	if (done)
@@ -7241,7 +7242,7 @@ static void normalize_task(struct rq *rq, struct task_struct *p)
 		.sched_policy = SCHED_NORMAL,
 	};
 	int old_prio = p->prio;
-	int queued;
+	bool queued;
 
 	queued = task_on_rq_queued(p);
 	if (queued)
@@ -7430,7 +7431,7 @@ void sched_offline_group(struct task_group *tg)
 void sched_move_task(struct task_struct *tsk)
 {
 	struct task_group *tg;
-	int queued, running;
+	bool queued, running;
 	unsigned long flags;
 	struct rq *rq;
 
@@ -7473,16 +7474,16 @@ void sched_move_task(struct task_struct *tsk)
 static DEFINE_MUTEX(rt_constraints_mutex);
 
 /* Must be called with tasklist_lock held */
-static inline int tg_has_rt_tasks(struct task_group *tg)
+static inline bool tg_has_rt_tasks(struct task_group *tg)
 {
 	struct task_struct *g, *p;
 
 	for_each_process_thread(g, p) {
 		if (rt_task(p) && task_group(p) == tg)
-			return 1;
+			return true;
 	}
 
-	return 0;
+	return false;
 }
 
 struct rt_schedulable_data {

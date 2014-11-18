@@ -2401,7 +2401,7 @@ static void selinux_bprm_committed_creds(struct linux_binprm *bprm)
 		spin_lock_irq(&current->sighand->siglock);
 		if (!(current->signal->flags & SIGNAL_GROUP_EXIT)) {
 			__flush_signals(current);
-			flush_signal_handlers(current, 1);
+			flush_signal_handlers(current, true);
 			sigemptyset(&current->blocked);
 		}
 		spin_unlock_irq(&current->sighand->siglock);

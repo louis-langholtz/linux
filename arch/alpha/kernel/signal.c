@@ -449,7 +449,7 @@ handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 	else
 		ret = setup_frame(ksig, oldset, regs);
 
-	signal_setup_done(ret, ksig, 0);
+	signal_setup_done(ret, ksig, false);
 }
 
 static inline void

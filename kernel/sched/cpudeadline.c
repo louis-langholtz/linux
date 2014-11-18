@@ -133,7 +133,7 @@ out:
  *
  * Returns: (void)
  */
-void cpudl_set(struct cpudl *cp, int cpu, u64 dl, int is_valid)
+void cpudl_set(struct cpudl *cp, int cpu, u64 dl, bool is_valid)
 {
 	int old_idx, new_cpu;
 	unsigned long flags;

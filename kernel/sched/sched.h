@@ -77,27 +77,27 @@ extern void update_cpu_load_active(struct rq *this_rq);
  */
 #define RUNTIME_INF	((u64)~0ULL)
 
-static inline int fair_policy(int policy)
+static inline bool fair_policy(int policy)
 {
 	return policy == SCHED_NORMAL || policy == SCHED_BATCH;
 }
 
-static inline int rt_policy(int policy)
+static inline bool rt_policy(int policy)
 {
 	return policy == SCHED_FIFO || policy == SCHED_RR;
 }
 
-static inline int dl_policy(int policy)
+static inline bool dl_policy(int policy)
 {
 	return policy == SCHED_DEADLINE;
 }
 
-static inline int task_has_rt_policy(struct task_struct *p)
+static inline bool task_has_rt_policy(struct task_struct *p)
 {
 	return rt_policy(p->policy);
 }
 
-static inline int task_has_dl_policy(struct task_struct *p)
+static inline bool task_has_dl_policy(struct task_struct *p)
 {
 	return dl_policy(p->policy);
 }
@@ -164,7 +164,7 @@ struct dl_bandwidth {
 	u64 dl_period;
 };
 
-static inline int dl_bandwidth_enabled(void)
+static inline bool dl_bandwidth_enabled(void)
 {
 	return sysctl_sched_rt_runtime >= 0;
 }
@@ -394,7 +394,7 @@ struct cfs_rq {
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 };
 
-static inline int rt_bandwidth_enabled(void)
+static inline bool rt_bandwidth_enabled(void)
 {
 	return sysctl_sched_rt_runtime >= 0;
 }
@@ -941,7 +941,7 @@ static inline u64 global_rt_runtime(void)
 	return (u64)sysctl_sched_rt_runtime * NSEC_PER_USEC;
 }
 
-static inline int task_current(struct rq *rq, struct task_struct *p)
+static inline bool task_current(struct rq *rq, struct task_struct *p)
 {
 	return rq->curr == p;
 }
@@ -955,12 +955,12 @@ static inline int task_running(struct rq *rq, struct task_struct *p)
 #endif
 }
 
-static inline int task_on_rq_queued(struct task_struct *p)
+static inline bool task_on_rq_queued(struct task_struct *p)
 {
 	return p->on_rq == TASK_ON_RQ_QUEUED;
 }
 
-static inline int task_on_rq_migrating(struct task_struct *p)
+static inline bool task_on_rq_migrating(struct task_struct *p)
 {
 	return p->on_rq == TASK_ON_RQ_MIGRATING;
 }
@@ -979,7 +979,7 @@ static inline void prepare_lock_switch(struct rq *rq, struct task_struct *next)
 {
 #ifdef CONFIG_SMP
 	/*
-	 * We can optimise this out completely for !SMP, because the
+	 * We can optimize this out completely for !SMP, because the
 	 * SMP rebalancing from interrupt is the only thing that cares
 	 * here.
 	 */
