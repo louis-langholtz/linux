@@ -527,9 +527,9 @@ out:
 /**
  * acct_collect - collect accounting information into pacct_struct
  * @exitcode: task exit code
- * @group_dead: not 0, if this thread is the last one in the process.
+ * @group_dead: not %false, if this thread is the last one in the process.
  */
-void acct_collect(long exitcode, int group_dead)
+void acct_collect(long exitcode, bool group_dead)
 {
 	struct pacct_struct *pacct = &current->signal->pacct;
 	cputime_t utime, stime;

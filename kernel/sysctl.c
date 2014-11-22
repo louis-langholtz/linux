@@ -1707,7 +1707,7 @@ int __init sysctl_init(void)
 
 #ifdef CONFIG_PROC_SYSCTL
 
-static int _proc_do_string(char *data, int maxlen, int write,
+static int _proc_do_string(char *data, int maxlen, bool write,
 			   char __user *buffer,
 			   size_t *lenp, loff_t *ppos)
 {
@@ -2225,7 +2225,8 @@ static int __do_proc_doulongvec_minmax(void *data, struct ctl_table *table, int 
 				     unsigned long convdiv)
 {
 	unsigned long *i, *min, *max;
-	int vleft, first = 1, err = 0;
+	int vleft, err = 0;
+	bool first = true;
 	unsigned long page = 0;
 	size_t left;
 	char *kbuf;
@@ -2267,7 +2268,7 @@ static int __do_proc_doulongvec_minmax(void *data, struct ctl_table *table, int 
 		kbuf[left] = 0;
 	}
 
-	for (; left && vleft--; i++, first = 0) {
+	for (; left && vleft--; i++, first = false) {
 		unsigned long val;
 
 		if (write) {

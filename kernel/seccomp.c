@@ -230,17 +230,17 @@ static inline void seccomp_assign_mode(struct task_struct *task,
 }
 
 #ifdef CONFIG_SECCOMP_FILTER
-/* Returns 1 if the parent is an ancestor of the child. */
-static int is_ancestor(struct seccomp_filter *parent,
+/* Returns true if the parent is an ancestor of the child. */
+static bool is_ancestor(struct seccomp_filter *parent,
 		       struct seccomp_filter *child)
 {
 	/* NULL is the root ancestor. */
 	if (parent == NULL)
-		return 1;
+		return true;
 	for (; child; child = child->prev)
 		if (child == parent)
-			return 1;
-	return 0;
+			return true;
+	return false;
 }
 
 /**

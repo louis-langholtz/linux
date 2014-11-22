@@ -399,7 +399,8 @@ void do_schedule_next_timer(struct siginfo *info)
 int posix_timer_event(struct k_itimer *timr, int si_private)
 {
 	struct task_struct *task;
-	int shared, ret = -1;
+	bool shared;
+	int ret = -1;
 	/*
 	 * FIXME: if ->sigq is queued we can race with
 	 * dequeue_signal()->do_schedule_next_timer().

@@ -597,7 +597,7 @@ static void forget_original_parent(struct task_struct *father)
  * Send signals to all our closest relatives so that they know
  * to properly mourn us..
  */
-static void exit_notify(struct task_struct *tsk, int group_dead)
+static void exit_notify(struct task_struct *tsk, bool group_dead)
 {
 	bool autoreap;
 
@@ -667,7 +667,7 @@ static inline void check_stack_usage(void) {}
 void do_exit(long code)
 {
 	struct task_struct *tsk = current;
-	int group_dead;
+	bool group_dead;
 	TASKS_RCU(int tasks_rcu_i);
 
 	profile_task_exit(tsk);

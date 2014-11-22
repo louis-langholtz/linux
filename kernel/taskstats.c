@@ -38,7 +38,7 @@
 #define TASKSTATS_CPUMASK_MAXLEN	(100+6*NR_CPUS)
 
 static DEFINE_PER_CPU(__u32, taskstats_seqnum);
-static int family_registered;
+static bool family_registered;
 struct kmem_cache *taskstats_cache;
 
 static struct genl_family family = {
@@ -613,14 +613,14 @@ ret:
 }
 
 /* Send pid data out on exit */
-void taskstats_exit(struct task_struct *tsk, int group_dead)
+void taskstats_exit(struct task_struct *tsk, bool group_dead)
 {
 	int rc;
 	struct listener_list *listeners;
 	struct taskstats *stats;
 	struct sk_buff *rep_skb;
 	size_t size;
-	int is_thread_group;
+	bool is_thread_group;
 
 	if (!family_registered)
 		return;
@@ -707,7 +707,7 @@ static int __init taskstats_init(void)
 	if (rc)
 		return rc;
 
-	family_registered = 1;
+	family_registered = true;
 	pr_info("registered taskstats version %d\n", TASKSTATS_GENL_VERSION);
 	return 0;
 }

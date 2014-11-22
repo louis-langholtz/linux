@@ -144,7 +144,7 @@ static DEFINE_PER_CPU_SHARED_ALIGNED(struct call_single_data, csd_data);
  * ->func, ->info, and ->flags set.
  */
 static int generic_exec_single(int cpu, struct call_single_data *csd,
-			       smp_call_func_t func, void *info, int wait)
+			       smp_call_func_t func, void *info, bool wait)
 {
 	struct call_single_data csd_stack = { .flags = 0 };
 	unsigned long flags;
@@ -321,7 +321,7 @@ int smp_call_function_single_async(int cpu, struct call_single_data *csd)
 	int err = 0;
 
 	preempt_disable();
-	err = generic_exec_single(cpu, csd, csd->func, csd->info, 0);
+	err = generic_exec_single(cpu, csd, csd->func, csd->info, false);
 	preempt_enable();
 
 	return err;

@@ -2339,7 +2339,7 @@ extern int send_sig(int, struct task_struct *, int);
 extern int zap_other_threads(struct task_struct *p);
 extern struct sigqueue *sigqueue_alloc(void);
 extern void sigqueue_free(struct sigqueue *);
-extern int send_sigqueue(struct sigqueue *,  struct task_struct *, int group);
+extern int send_sigqueue(struct sigqueue *,  struct task_struct *, bool group);
 extern int do_sigaction(int, struct k_sigaction *, struct k_sigaction *);
 
 static inline void restore_saved_sigmask(void)
@@ -2525,7 +2525,7 @@ static inline struct task_struct *next_thread(const struct task_struct *p)
 			      struct task_struct, thread_group);
 }
 
-static inline int thread_group_empty(struct task_struct *p)
+static inline bool thread_group_empty(struct task_struct *p)
 {
 	return list_empty(&p->thread_group);
 }

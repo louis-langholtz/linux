@@ -447,7 +447,7 @@ static inline int sigio_perm(struct task_struct *p,
 
 static void send_sigio_to_task(struct task_struct *p,
 			       struct fown_struct *fown,
-			       int fd, int reason, int group)
+			       int fd, int reason, bool group)
 {
 	/*
 	 * F_SETSIG can change ->signum lockless in parallel, make
@@ -492,13 +492,13 @@ void send_sigio(struct fown_struct *fown, int fd, int band)
 	struct task_struct *p;
 	enum pid_type type;
 	struct pid *pid;
-	int group = 1;
+	bool group = true;
 	
 	read_lock(&fown->lock);
 
 	type = fown->pid_type;
 	if (type == PIDTYPE_MAX) {
-		group = 0;
+		group = false;
 		type = PIDTYPE_PID;
 	}
 
@@ -516,7 +516,7 @@ void send_sigio(struct fown_struct *fown, int fd, int band)
 }
 
 static void send_sigurg_to_task(struct task_struct *p,
-				struct fown_struct *fown, int group)
+				struct fown_struct *fown, bool group)
 {
 	if (sigio_perm(p, fown, SIGURG))
 		do_send_sig_info(SIGURG, SEND_SIG_PRIV, p, group);
@@ -527,14 +527,14 @@ int send_sigurg(struct fown_struct *fown)
 	struct task_struct *p;
 	enum pid_type type;
 	struct pid *pid;
-	int group = 1;
+	bool group = true;
 	int ret = 0;
 	
 	read_lock(&fown->lock);
 
 	type = fown->pid_type;
 	if (type == PIDTYPE_MAX) {
-		group = 0;
+		group = false;
 		type = PIDTYPE_PID;
 	}
 

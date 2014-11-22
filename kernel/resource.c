@@ -982,7 +982,7 @@ void __init reserve_region_with_split(struct resource *root,
 		resource_size_t start, resource_size_t end,
 		const char *name)
 {
-	int abort = 0;
+	bool abort = false;
 
 	write_lock(&resource_lock);
 	if (root->start > start || root->end < end) {
@@ -990,7 +990,7 @@ void __init reserve_region_with_split(struct resource *root,
 		       (unsigned long long)start, (unsigned long long)end,
 		       root);
 		if (start > root->end || end < root->start)
-			abort = 1;
+			abort = true;
 		else {
 			if (end > root->end)
 				end = root->end;
