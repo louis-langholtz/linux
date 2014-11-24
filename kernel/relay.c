@@ -970,7 +970,7 @@ static void relay_file_read_consume(struct rchan_buf *buf,
 /*
  *	relay_file_read_avail - boolean, are there unconsumed bytes available?
  */
-static int relay_file_read_avail(struct rchan_buf *buf, size_t read_pos)
+static bool relay_file_read_avail(struct rchan_buf *buf, size_t read_pos)
 {
 	size_t subbuf_size = buf->chan->subbuf_size;
 	size_t n_subbufs = buf->chan->n_subbufs;
@@ -983,8 +983,8 @@ static int relay_file_read_avail(struct rchan_buf *buf, size_t read_pos)
 
 	if (unlikely(buf->offset > subbuf_size)) {
 		if (produced == consumed)
-			return 0;
-		return 1;
+			return false;
+		return true;
 	}
 
 	if (unlikely(produced - consumed >= n_subbufs)) {
@@ -1002,11 +1002,11 @@ static int relay_file_read_avail(struct rchan_buf *buf, size_t read_pos)
 	if (consumed == produced) {
 		if (buf->offset == subbuf_size &&
 		    buf->subbufs_produced > buf->subbufs_consumed)
-			return 1;
-		return 0;
+			return true;
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 /**
