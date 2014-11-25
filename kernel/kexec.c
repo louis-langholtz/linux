@@ -82,11 +82,11 @@ struct resource crashk_low_res = {
 	.flags = IORESOURCE_BUSY | IORESOURCE_MEM
 };
 
-int kexec_should_crash(struct task_struct *p)
+bool kexec_should_crash(struct task_struct *p)
 {
 	if (in_interrupt() || !p->pid || is_global_init(p) || panic_on_oops)
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
 /*
@@ -135,7 +135,7 @@ int kexec_should_crash(struct task_struct *p)
  */
 #define KIMAGE_NO_DEST (-1UL)
 
-static int kimage_is_destination_range(struct kimage *image,
+static bool kimage_is_destination_range(struct kimage *image,
 				       unsigned long start, unsigned long end);
 static struct page *kimage_alloc_page(struct kimage *image,
 				       gfp_t gfp_mask,
@@ -619,7 +619,7 @@ out_free_image:
 static inline void kimage_file_post_load_cleanup(struct kimage *image) { }
 #endif /* CONFIG_KEXEC_FILE */
 
-static int kimage_is_destination_range(struct kimage *image,
+static bool kimage_is_destination_range(struct kimage *image,
 					unsigned long start,
 					unsigned long end)
 {
@@ -631,10 +631,10 @@ static int kimage_is_destination_range(struct kimage *image,
 		mstart = image->segment[i].mem;
 		mend = mstart + image->segment[i].memsz;
 		if ((end > mstart) && (start < mend))
-			return 1;
+			return true;
 	}
 
-	return 0;
+	return false;
 }
 
 static struct page *kimage_alloc_pages(gfp_t gfp_mask, unsigned int order)

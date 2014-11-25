@@ -112,7 +112,7 @@ static void free_pidmap(struct upid *upid)
 /*
  * If we started walking pids at 'base', is 'a' seen before 'b'?
  */
-static int pid_before(int base, int a, int b)
+static bool pid_before(int base, int a, int b)
 {
 	/*
 	 * This is the same as saying

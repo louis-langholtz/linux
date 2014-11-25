@@ -140,13 +140,13 @@ static int parse_one(char *param,
 static char *next_arg(char *args, char **param, char **val)
 {
 	unsigned int i, equals = 0;
-	int in_quote = 0, quoted = 0;
+	bool in_quote = false, quoted = false;
 	char *next;
 
 	if (*args == '"') {
 		args++;
-		in_quote = 1;
-		quoted = 1;
+		in_quote = true;
+		quoted = true;
 	}
 
 	for (i = 0; args[i]; i++) {

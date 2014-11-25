@@ -52,30 +52,30 @@ extern const u16 kallsyms_token_index[] __weak;
 
 extern const unsigned long kallsyms_markers[] __weak;
 
-static inline int is_kernel_inittext(unsigned long addr)
+static inline bool is_kernel_inittext(unsigned long addr)
 {
 	if (addr >= (unsigned long)_sinittext
 	    && addr <= (unsigned long)_einittext)
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
-static inline int is_kernel_text(unsigned long addr)
+static inline bool is_kernel_text(unsigned long addr)
 {
 	if ((addr >= (unsigned long)_stext && addr <= (unsigned long)_etext) ||
 	    arch_is_kernel_text(addr))
-		return 1;
-	return in_gate_area_no_mm(addr);
+		return true;
+	return !!in_gate_area_no_mm(addr);
 }
 
-static inline int is_kernel(unsigned long addr)
+static inline bool is_kernel(unsigned long addr)
 {
 	if (addr >= (unsigned long)_stext && addr <= (unsigned long)_end)
-		return 1;
-	return in_gate_area_no_mm(addr);
+		return true;
+	return !!in_gate_area_no_mm(addr);
 }
 
-static int is_ksym_addr(unsigned long addr)
+static bool is_ksym_addr(unsigned long addr)
 {
 	if (all_var)
 		return is_kernel(addr);
@@ -91,7 +91,8 @@ static int is_ksym_addr(unsigned long addr)
 static unsigned int kallsyms_expand_symbol(unsigned int off,
 					   char *result, size_t maxlen)
 {
-	int len, skipped_first = 0;
+	int len;
+	bool skipped_first = false;
 	const u8 *tptr, *data;
 
 	/* Get the compressed symbol length from the first symbol byte. */
@@ -122,7 +123,7 @@ static unsigned int kallsyms_expand_symbol(unsigned int off,
 				result++;
 				maxlen--;
 			} else
-				skipped_first = 1;
+				skipped_first = true;
 			tptr++;
 		}
 	}

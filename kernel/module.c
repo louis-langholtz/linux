@@ -645,18 +645,18 @@ static int module_unload_init(struct module *mod)
 }
 
 /* Does a already use b? */
-static int already_uses(struct module *a, struct module *b)
+static bool already_uses(struct module *a, struct module *b)
 {
 	struct module_use *use;
 
 	list_for_each_entry(use, &b->source_list, source_list) {
 		if (use->source == a) {
 			pr_debug("%s uses %s!\n", a->name, b->name);
-			return 1;
+			return true;
 		}
 	}
 	pr_debug("%s does not use %s!\n", a->name, b->name);
-	return 0;
+	return false;
 }
 
 /*
@@ -873,19 +873,19 @@ out:
 static inline void print_unload_info(struct seq_file *m, struct module *mod)
 {
 	struct module_use *use;
-	int printed_something = 0;
+	bool printed_something = false;
 
 	seq_printf(m, " %lu ", module_refcount(mod));
 
 	/* Always include a trailing , so userspace can differentiate
            between this and the old multi-field proc format. */
 	list_for_each_entry(use, &mod->source_list, source_list) {
-		printed_something = 1;
+		printed_something = true;
 		seq_printf(m, "%s,", use->source->name);
 	}
 
 	if (mod->init != NULL && mod->exit == NULL) {
-		printed_something = 1;
+		printed_something = true;
 		seq_printf(m, "[permanent],");
 	}
 
@@ -2206,7 +2206,7 @@ static const struct kernel_symbol *lookup_symbol(const char *name,
 			sizeof(struct kernel_symbol), cmp_name);
 }
 
-static int is_exported(const char *name, unsigned long value,
+static bool is_exported(const char *name, unsigned long value,
 		       const struct module *mod)
 {
 	const struct kernel_symbol *ks;
@@ -3376,9 +3376,9 @@ SYSCALL_DEFINE3(finit_module, int, fd, const char __user *, uargs, int, flags)
 	return load_module(&info, uargs, flags);
 }
 
-static inline int within(unsigned long addr, void *start, unsigned long size)
+static inline bool within(unsigned long addr, void *start, unsigned long size)
 {
-	return ((void *)addr >= start && (void *)addr < start + size);
+	return ((void *)addr >= start) && ((void *)addr < start + size);
 }
 
 #ifdef CONFIG_KALLSYMS
@@ -3386,7 +3386,7 @@ static inline int within(unsigned long addr, void *start, unsigned long size)
  * This ignores the intensely annoying "mapping symbols" found
  * in ARM ELF files: $a, $t and $d.
  */
-static inline int is_arm_mapping_symbol(const char *str)
+static inline bool is_arm_mapping_symbol(const char *str)
 {
 	if (str[0] == '.' && str[1] == 'L')
 		return true;

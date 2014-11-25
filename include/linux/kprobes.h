@@ -136,9 +136,9 @@ static inline int kprobe_gone(struct kprobe *p)
 }
 
 /* Is this kprobe disabled ? */
-static inline int kprobe_disabled(struct kprobe *p)
+static inline bool kprobe_disabled(struct kprobe *p)
 {
-	return p->flags & (KPROBE_FLAG_DISABLED | KPROBE_FLAG_GONE);
+	return !!(p->flags & (KPROBE_FLAG_DISABLED | KPROBE_FLAG_GONE));
 }
 
 /* Is this kprobe really running optimized path ? */

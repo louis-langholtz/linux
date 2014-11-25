@@ -102,7 +102,8 @@ account_global_scheduler_latency(struct task_struct *tsk,
 		return;
 
 	for (i = 0; i < MAXLR; i++) {
-		int q, same = 1;
+		int q;
+		bool same = true;
 
 		/* Nothing stored: */
 		if (!latency_record[i].backtrace[0]) {
@@ -114,7 +115,7 @@ account_global_scheduler_latency(struct task_struct *tsk,
 			unsigned long record = lat->backtrace[q];
 
 			if (latency_record[i].backtrace[q] != record) {
-				same = 0;
+				same = false;
 				break;
 			}
 

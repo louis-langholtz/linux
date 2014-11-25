@@ -319,13 +319,13 @@ NOKPROBE_SYMBOL(get_kprobe);
 static int aggr_pre_handler(struct kprobe *p, struct pt_regs *regs);
 
 /* Return true if the kprobe is an aggregator */
-static inline int kprobe_aggrprobe(struct kprobe *p)
+static inline bool kprobe_aggrprobe(struct kprobe *p)
 {
 	return p->pre_handler == aggr_pre_handler;
 }
 
 /* Return true(!0) if the kprobe is unused */
-static inline int kprobe_unused(struct kprobe *p)
+static inline bool kprobe_unused(struct kprobe *p)
 {
 	return kprobe_aggrprobe(p) && kprobe_disabled(p) &&
 	       list_empty(&p->list);
@@ -374,20 +374,20 @@ static void free_aggr_kprobe(struct kprobe *p)
 }
 
 /* Return true(!0) if the kprobe is ready for optimization. */
-static inline int kprobe_optready(struct kprobe *p)
+static inline bool kprobe_optready(struct kprobe *p)
 {
 	struct optimized_kprobe *op;
 
 	if (kprobe_aggrprobe(p)) {
 		op = container_of(p, struct optimized_kprobe, kp);
-		return arch_prepared_optinsn(&op->optinsn);
+		return !!arch_prepared_optinsn(&op->optinsn);
 	}
 
-	return 0;
+	return false;
 }
 
-/* Return true(!0) if the kprobe is disarmed. Note: p must be on hash list */
-static inline int kprobe_disarmed(struct kprobe *p)
+/* Return true(!false) if the kprobe is disarmed. Note: p must be on hash list */
+static inline bool kprobe_disarmed(struct kprobe *p)
 {
 	struct optimized_kprobe *op;
 
@@ -401,16 +401,16 @@ static inline int kprobe_disarmed(struct kprobe *p)
 }
 
 /* Return true(!0) if the probe is queued on (un)optimizing lists */
-static int kprobe_queued(struct kprobe *p)
+static bool kprobe_queued(struct kprobe *p)
 {
 	struct optimized_kprobe *op;
 
 	if (kprobe_aggrprobe(p)) {
 		op = container_of(p, struct optimized_kprobe, kp);
 		if (!list_empty(&op->list))
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 /*
@@ -1535,7 +1535,7 @@ out:
 EXPORT_SYMBOL_GPL(register_kprobe);
 
 /* Check if all probes on the aggrprobe are disabled */
-static int aggr_kprobe_disabled(struct kprobe *ap)
+static bool aggr_kprobe_disabled(struct kprobe *ap)
 {
 	struct kprobe *kp;
 
@@ -1545,9 +1545,9 @@ static int aggr_kprobe_disabled(struct kprobe *ap)
 			 * There is an active probe on the list.
 			 * We can't disable this ap.
 			 */
-			return 0;
+			return false;
 
-	return 1;
+	return true;
 }
 
 /* Disable one kprobe: Make sure called under kprobe_mutex is locked */
@@ -2079,7 +2079,7 @@ static int kprobes_module_callback(struct notifier_block *nb,
 	struct hlist_head *head;
 	struct kprobe *p;
 	unsigned int i;
-	int checkcore = (val == MODULE_STATE_GOING);
+	bool checkcore = (val == MODULE_STATE_GOING);
 
 	if (val != MODULE_STATE_GOING && val != MODULE_STATE_LIVE)
 		return NOTIFY_DONE;

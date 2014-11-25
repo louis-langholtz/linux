@@ -227,7 +227,7 @@ extern int kexec_purgatory_get_set_symbol(struct kimage *image,
 extern void *kexec_purgatory_get_symbol_addr(struct kimage *image,
 					     const char *name);
 extern void crash_kexec(struct pt_regs *);
-int kexec_should_crash(struct task_struct *);
+bool kexec_should_crash(struct task_struct *);
 void crash_save_cpu(struct pt_regs *regs, int cpu);
 void crash_save_vmcoreinfo(void);
 void crash_map_reserved_pages(void);
@@ -311,6 +311,6 @@ void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
 struct pt_regs;
 struct task_struct;
 static inline void crash_kexec(struct pt_regs *regs) { }
-static inline int kexec_should_crash(struct task_struct *p) { return 0; }
+static inline bool kexec_should_crash(struct task_struct *p) { return false; }
 #endif /* CONFIG_KEXEC */
 #endif /* LINUX_KEXEC_H */
