@@ -504,7 +504,7 @@ static void padata_replace(struct padata_instance *pinst,
 			   struct parallel_data *pd_new)
 {
 	struct parallel_data *pd_old = pinst->pd;
-	int notification_mask = 0;
+	unsigned int notification_mask = 0;
 
 	pinst->flags |= PADATA_RESET;
 
@@ -577,7 +577,7 @@ static int __padata_set_cpumasks(struct padata_instance *pinst,
 				 cpumask_var_t pcpumask,
 				 cpumask_var_t cbcpumask)
 {
-	int valid;
+	bool valid;
 	struct parallel_data *pd;
 
 	valid = padata_validate_cpumask(pinst, pcpumask);
