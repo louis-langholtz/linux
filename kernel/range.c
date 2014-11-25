@@ -118,11 +118,10 @@ static int cmp_range(const void *x1, const void *x2)
 	start1 = r1->start;
 	start2 = r2->start;
 
-	/* avoid any overflow possibilities and don't just return start1 - start2 */
+	if (start1 < start2)
+		return -1;
 	if (start1 > start2)
 		return 1;
-	if (start2 > start1)
-		return -1;
 	return 0;
 }
 
