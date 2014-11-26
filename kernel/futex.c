@@ -315,9 +315,9 @@ static struct futex_hash_bucket *hash_futex(union futex_key *key)
 }
 
 /*
- * Return 1 if two futex_keys are equal, 0 otherwise.
+ * Return true if two futex_keys are equal, false otherwise.
  */
-static inline int match_futex(union futex_key *key1, union futex_key *key2)
+static inline bool match_futex(union futex_key *key1, union futex_key *key2)
 {
 	return (key1 && key2
 		&& key1->both.word == key2->both.word
@@ -400,7 +400,8 @@ get_futex_key(u32 __user *uaddr, int fshared, union futex_key *key, int rw)
 	unsigned long address = (unsigned long)uaddr;
 	struct mm_struct *mm = current->mm;
 	struct page *page, *page_head;
-	int err, ro = 0;
+	int err;
+	bool ro = false;
 
 	/*
 	 * The futex address must be "naturally" aligned.
@@ -435,7 +436,7 @@ again:
 	 */
 	if (err == -EFAULT && rw == VERIFY_READ) {
 		err = get_user_pages_fast(address, 1, 0, &page);
-		ro = 1;
+		ro = true;
 	}
 	if (err < 0)
 		return err;
@@ -1002,7 +1003,7 @@ static int lock_pi_update_atomic(u32 __user *uaddr, u32 uval, u32 newval)
 static int futex_lock_pi_atomic(u32 __user *uaddr, struct futex_hash_bucket *hb,
 				union futex_key *key,
 				struct futex_pi_state **ps,
-				struct task_struct *task, int set_waiters)
+				struct task_struct *task, bool set_waiters)
 {
 	u32 uval, newval, vpid = task_pid_vnr(task);
 	struct futex_q *match;
@@ -1434,7 +1435,7 @@ static int futex_proxy_trylock_atomic(u32 __user *pifutex,
 				 struct futex_hash_bucket *hb1,
 				 struct futex_hash_bucket *hb2,
 				 union futex_key *key1, union futex_key *key2,
-				 struct futex_pi_state **ps, int set_waiters)
+				 struct futex_pi_state **ps, bool set_waiters)
 {
 	struct futex_q *top_waiter = NULL;
 	u32 curval;
@@ -1496,7 +1497,7 @@ static int futex_proxy_trylock_atomic(u32 __user *pifutex,
  */
 static int futex_requeue(u32 __user *uaddr1, unsigned int flags,
 			 u32 __user *uaddr2, int nr_wake, int nr_requeue,
-			 u32 *cmpval, int requeue_pi)
+			 u32 *cmpval, bool requeue_pi)
 {
 	union futex_key key1 = FUTEX_KEY_INIT, key2 = FUTEX_KEY_INIT;
 	int drop_count = 0, task_count = 0, ret;
@@ -1591,7 +1592,7 @@ retry_private:
 		 * faults rather in the requeue loop below.
 		 */
 		ret = futex_proxy_trylock_atomic(uaddr2, hb1, hb2, &key1,
-						 &key2, &pi_state, nr_requeue);
+						 &key2, &pi_state, !!nr_requeue);
 
 		/*
 		 * At this point the top_waiter has either taken uaddr2 or is
@@ -1986,7 +1987,7 @@ static long futex_wait_restart(struct restart_block *restart);
  *  0 - success, lock not taken;
  * <0 - on error (-EFAULT)
  */
-static int fixup_owner(u32 __user *uaddr, struct futex_q *q, int locked)
+static int fixup_owner(u32 __user *uaddr, struct futex_q *q, bool locked)
 {
 	struct task_struct *owner;
 	int ret = 0;
@@ -2012,7 +2013,7 @@ static int fixup_owner(u32 __user *uaddr, struct futex_q *q, int locked)
 		 * rt_mutex waiters list.
 		 */
 		if (rt_mutex_trylock(&q->pi_state->pi_mutex)) {
-			locked = 1;
+			locked = true;
 			goto out;
 		}
 
@@ -2259,7 +2260,7 @@ static long futex_wait_restart(struct restart_block *restart)
  * races the kernel might see a 0 value of the futex too.)
  */
 static int futex_lock_pi(u32 __user *uaddr, unsigned int flags, int detect,
-			 ktime_t *time, int trylock)
+			 ktime_t *time, bool trylock)
 {
 	struct hrtimer_sleeper timeout, *to = NULL;
 	struct futex_hash_bucket *hb;
@@ -2285,7 +2286,7 @@ retry:
 retry_private:
 	hb = queue_lock(&q);
 
-	ret = futex_lock_pi_atomic(uaddr, hb, &q.key, &q.pi_state, current, 0);
+	ret = futex_lock_pi_atomic(uaddr, hb, &q.key, &q.pi_state, current, false);
 	if (unlikely(ret)) {
 		switch (ret) {
 		case 1:
@@ -2947,23 +2948,23 @@ long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
 	case FUTEX_WAKE_BITSET:
 		return futex_wake(uaddr, flags, val, val3);
 	case FUTEX_REQUEUE:
-		return futex_requeue(uaddr, flags, uaddr2, val, val2, NULL, 0);
+		return futex_requeue(uaddr, flags, uaddr2, val, val2, NULL, false);
 	case FUTEX_CMP_REQUEUE:
-		return futex_requeue(uaddr, flags, uaddr2, val, val2, &val3, 0);
+		return futex_requeue(uaddr, flags, uaddr2, val, val2, &val3, false);
 	case FUTEX_WAKE_OP:
 		return futex_wake_op(uaddr, flags, uaddr2, val, val2, val3);
 	case FUTEX_LOCK_PI:
-		return futex_lock_pi(uaddr, flags, val, timeout, 0);
+		return futex_lock_pi(uaddr, flags, val, timeout, false);
 	case FUTEX_UNLOCK_PI:
 		return futex_unlock_pi(uaddr, flags);
 	case FUTEX_TRYLOCK_PI:
-		return futex_lock_pi(uaddr, flags, 0, timeout, 1);
+		return futex_lock_pi(uaddr, flags, 0, timeout, true);
 	case FUTEX_WAIT_REQUEUE_PI:
 		val3 = FUTEX_BITSET_MATCH_ANY;
 		return futex_wait_requeue_pi(uaddr, flags, val, timeout, val3,
 					     uaddr2);
 	case FUTEX_CMP_REQUEUE_PI:
-		return futex_requeue(uaddr, flags, uaddr2, val, val2, &val3, 1);
+		return futex_requeue(uaddr, flags, uaddr2, val, val2, &val3, true);
 	}
 	return -ENOSYS;
 }

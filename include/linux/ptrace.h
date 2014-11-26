@@ -59,7 +59,7 @@ extern void exit_ptrace(struct task_struct *tracer);
 /* Returns true on success, false on denial. */
 extern bool ptrace_may_access(struct task_struct *task, unsigned int mode);
 
-static inline int ptrace_reparented(struct task_struct *child)
+static inline bool ptrace_reparented(struct task_struct *child)
 {
 	return !same_thread_group(child->real_parent, child->parent);
 }

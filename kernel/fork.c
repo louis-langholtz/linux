@@ -1866,7 +1866,7 @@ SYSCALL_DEFINE1(unshare, unsigned long, unshare_flags)
 	struct files_struct *fd, *new_fd = NULL;
 	struct cred *new_cred = NULL;
 	struct nsproxy *new_nsproxy = NULL;
-	int do_sysvsem = 0;
+	bool do_sysvsem = false;
 	int err;
 
 	/*
@@ -1899,7 +1899,7 @@ SYSCALL_DEFINE1(unshare, unsigned long, unshare_flags)
 	 * namespace are unreachable.
 	 */
 	if (unshare_flags & (CLONE_NEWIPC|CLONE_SYSVSEM))
-		do_sysvsem = 1;
+		do_sysvsem = true;
 	err = unshare_fs(unshare_flags, &new_fs);
 	if (err)
 		goto bad_unshare_out;

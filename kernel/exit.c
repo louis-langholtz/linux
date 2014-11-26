@@ -172,7 +172,7 @@ static void delayed_put_task_struct(struct rcu_head *rhp)
 void release_task(struct task_struct *p)
 {
 	struct task_struct *leader;
-	int zap_leader;
+	bool zap_leader;
 repeat:
 	/* don't need to get the RCU readlock here - the process is dead and
 	 * can't be modifying its own credentials. But shut RCU-lockdep up */
@@ -191,7 +191,7 @@ repeat:
 	 * group, and the leader is zombie, then notify the
 	 * group leader's parent process. (if it wants notification.)
 	 */
-	zap_leader = 0;
+	zap_leader = false;
 	leader = p->group_leader;
 	if (leader != p && thread_group_empty(leader)
 			&& leader->exit_state == EXIT_ZOMBIE) {
@@ -243,7 +243,7 @@ struct pid *session_of_pgrp(struct pid *pgrp)
  *
  * "I ask you, have you ever known what it is to be an orphan?"
  */
-static int will_become_orphaned_pgrp(struct pid *pgrp,
+static bool will_become_orphaned_pgrp(struct pid *pgrp,
 					struct task_struct *ignored_task)
 {
 	struct task_struct *p;
@@ -256,10 +256,10 @@ static int will_become_orphaned_pgrp(struct pid *pgrp,
 
 		if (task_pgrp(p->real_parent) != pgrp &&
 		    task_session(p->real_parent) == task_session(p))
-			return 0;
+			return false;
 	} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
 
-	return 1;
+	return true;
 }
 
 int is_current_pgrp_orphaned(void)
@@ -924,16 +924,16 @@ struct pid *task_pid_type(struct task_struct *task, enum pid_type type)
 	return task->pids[type].pid;
 }
 
-static int eligible_pid(struct wait_opts *wo, struct task_struct *p)
+static bool eligible_pid(struct wait_opts *wo, struct task_struct *p)
 {
 	return	wo->wo_type == PIDTYPE_MAX ||
 		task_pid_type(p, wo->wo_type) == wo->wo_pid;
 }
 
-static int eligible_child(struct wait_opts *wo, struct task_struct *p)
+static bool eligible_child(struct wait_opts *wo, struct task_struct *p)
 {
 	if (!eligible_pid(wo, p))
-		return 0;
+		return false;
 	/* Wait for all children (clone and not) if __WALL is set;
 	 * otherwise, wait for clone children *only* if __WCLONE is
 	 * set; otherwise, wait for non-clone children *only*.  (Note:
@@ -941,9 +941,9 @@ static int eligible_child(struct wait_opts *wo, struct task_struct *p)
 	 * using a signal other than SIGCHLD.) */
 	if (((p->exit_signal != SIGCHLD) ^ !!(wo->wo_flags & __WCLONE))
 	    && !(wo->wo_flags & __WALL))
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
 static int wait_noreap_copyout(struct wait_opts *wo, struct task_struct *p,
@@ -983,7 +983,8 @@ static int wait_noreap_copyout(struct wait_opts *wo, struct task_struct *p,
 static int wait_task_zombie(struct wait_opts *wo, struct task_struct *p)
 {
 	unsigned long state;
-	int retval, status, traced;
+	int retval, status;
+	bool traced;
 	pid_t pid = task_pid_vnr(p);
 	uid_t uid = from_kuid_munged(current_user_ns(), task_uid(p));
 	struct siginfo __user *infop;
@@ -1163,7 +1164,7 @@ static int *task_stopped_code(struct task_struct *p, bool ptrace)
  * search should terminate.
  */
 static int wait_task_stopped(struct wait_opts *wo,
-				int ptrace, struct task_struct *p)
+				bool ptrace, struct task_struct *p)
 {
 	struct siginfo __user *infop;
 	int retval, exit_code, *p_code, why;
@@ -1299,7 +1300,7 @@ static int wait_task_continued(struct wait_opts *wo, struct task_struct *p)
  * then ->notask_error is 0 if @p is an eligible child,
  * or another error from security_task_wait(), or still -ECHILD.
  */
-static int wait_consider_task(struct wait_opts *wo, int ptrace,
+static int wait_consider_task(struct wait_opts *wo, bool ptrace,
 				struct task_struct *p)
 {
 	int ret;
@@ -1348,7 +1349,7 @@ static int wait_consider_task(struct wait_opts *wo, int ptrace,
 		 * the role of real parent.
 		 */
 		if (!ptrace_reparented(p))
-			ptrace = 1;
+			ptrace = true;
 	}
 
 	/* slay zombie? */
@@ -1424,7 +1425,7 @@ static int do_wait_thread(struct wait_opts *wo, struct task_struct *tsk)
 	struct task_struct *p;
 
 	list_for_each_entry(p, &tsk->children, sibling) {
-		int ret = wait_consider_task(wo, 0, p);
+		int ret = wait_consider_task(wo, false, p);
 
 		if (ret)
 			return ret;
@@ -1438,7 +1439,7 @@ static int ptrace_do_wait(struct wait_opts *wo, struct task_struct *tsk)
 	struct task_struct *p;
 
 	list_for_each_entry(p, &tsk->ptraced, ptrace_entry) {
-		int ret = wait_consider_task(wo, 1, p);
+		int ret = wait_consider_task(wo, true, p);
 
 		if (ret)
 			return ret;
