@@ -116,11 +116,11 @@ static void bump_cpu_timer(struct k_itimer *timer,
  * Checks @cputime to see if all fields are zero.  Returns true if all fields
  * are zero, false if any field is nonzero.
  */
-static inline int task_cputime_zero(const struct task_cputime *cputime)
+static inline bool task_cputime_zero(const struct task_cputime *cputime)
 {
 	if (!cputime->utime && !cputime->stime && !cputime->sum_exec_runtime)
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
 static inline unsigned long long prof_ticks(struct task_struct *p)
@@ -435,7 +435,7 @@ void posix_cpu_timers_exit_group(struct task_struct *tsk)
 	cleanup_timers(tsk->signal->cpu_timers);
 }
 
-static inline int expires_gt(cputime_t expires, cputime_t new_exp)
+static inline bool expires_gt(cputime_t expires, cputime_t new_exp)
 {
 	return expires == 0 || expires > new_exp;
 }
@@ -1069,17 +1069,17 @@ out:
  * Returns true if any field of the former is greater than the corresponding
  * field of the latter if the latter field is set.  Otherwise returns false.
  */
-static inline int task_cputime_expired(const struct task_cputime *sample,
+static inline bool task_cputime_expired(const struct task_cputime *sample,
 					const struct task_cputime *expires)
 {
 	if (expires->utime && sample->utime >= expires->utime)
-		return 1;
+		return true;
 	if (expires->stime && sample->utime + sample->stime >= expires->stime)
-		return 1;
+		return true;
 	if (expires->sum_exec_runtime != 0 &&
 	    sample->sum_exec_runtime >= expires->sum_exec_runtime)
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
 /**
@@ -1092,7 +1092,7 @@ static inline int task_cputime_expired(const struct task_cputime *sample,
  * timers and compare them with the corresponding expiration times.  Return
  * true if a timer has expired, else return false.
  */
-static inline int fastpath_timer_check(struct task_struct *tsk)
+static inline bool fastpath_timer_check(struct task_struct *tsk)
 {
 	struct signal_struct *sig;
 	cputime_t utime, stime;
@@ -1107,7 +1107,7 @@ static inline int fastpath_timer_check(struct task_struct *tsk)
 		};
 
 		if (task_cputime_expired(&task_sample, &tsk->cputime_expires))
-			return 1;
+			return true;
 	}
 
 	sig = tsk->signal;
@@ -1119,10 +1119,10 @@ static inline int fastpath_timer_check(struct task_struct *tsk)
 		raw_spin_unlock(&sig->cputimer.lock);
 
 		if (task_cputime_expired(&group_sample, &sig->cputime_expires))
-			return 1;
+			return true;
 	}
 
-	return 0;
+	return false;
 }
 
 /*

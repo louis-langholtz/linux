@@ -162,7 +162,7 @@ static inline void warp_clock(void)
 
 int do_sys_settimeofday(const struct timespec *tv, const struct timezone *tz)
 {
-	static int firsttime = 1;
+	static bool firsttime = true;
 	int error = 0;
 
 	if (tv && !timespec_valid(tv))
@@ -176,7 +176,7 @@ int do_sys_settimeofday(const struct timespec *tv, const struct timezone *tz)
 		sys_tz = *tz;
 		update_vsyscall_tz();
 		if (firsttime) {
-			firsttime = 0;
+			firsttime = false;
 			if (!tv)
 				warp_clock();
 		}

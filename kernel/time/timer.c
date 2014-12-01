@@ -1229,7 +1229,8 @@ static unsigned long __next_timer_interrupt(struct tvec_base *base)
 {
 	unsigned long timer_jiffies = base->timer_jiffies;
 	unsigned long expires = timer_jiffies + NEXT_TIMER_MAX_DELTA;
-	int index, slot, array, found = 0;
+	int index, slot, array;
+	bool found = false;
 	struct timer_list *nte;
 	struct tvec *varray[4];
 
@@ -1240,7 +1241,7 @@ static unsigned long __next_timer_interrupt(struct tvec_base *base)
 			if (tbase_get_deferrable(nte->base))
 				continue;
 
-			found = 1;
+			found = true;
 			expires = nte->expires;
 			/* Look at the cascade bucket(s)? */
 			if (!index || slot < index)
@@ -1271,7 +1272,7 @@ cascade:
 				if (tbase_get_deferrable(nte->base))
 					continue;
 
-				found = 1;
+				found = true;
 				if (time_before(nte->expires, expires))
 					expires = nte->expires;
 			}

@@ -151,7 +151,7 @@ static struct entry *alloc_entry(void)
 	return entries + nr_entries++;
 }
 
-static int match_entries(struct entry *entry1, struct entry *entry2)
+static bool match_entries(struct entry *entry1, struct entry *entry2)
 {
 	return entry1->timer       == entry2->timer	  &&
 	       entry1->start_func  == entry2->start_func  &&

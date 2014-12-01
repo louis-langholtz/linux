@@ -486,7 +486,7 @@ static inline int hrtimer_hres_active(void)
  * Called with interrupts disabled and base->lock held
  */
 static void
-hrtimer_force_reprogram(struct hrtimer_cpu_base *cpu_base, int skip_equal)
+hrtimer_force_reprogram(struct hrtimer_cpu_base *cpu_base, bool skip_equal)
 {
 	int i;
 	struct hrtimer_clock_base *base = cpu_base->clock_base;
@@ -636,7 +636,7 @@ static void retrigger_next_event(void *arg)
 
 	raw_spin_lock(&base->lock);
 	hrtimer_update_base(base);
-	hrtimer_force_reprogram(base, 0);
+	hrtimer_force_reprogram(base, false);
 	raw_spin_unlock(&base->lock);
 }
 
@@ -693,7 +693,7 @@ static inline int hrtimer_hres_active(void) { return 0; }
 static inline int hrtimer_is_hres_enabled(void) { return 0; }
 static inline int hrtimer_switch_to_hres(void) { return 0; }
 static inline void
-hrtimer_force_reprogram(struct hrtimer_cpu_base *base, int skip_equal) { }
+hrtimer_force_reprogram(struct hrtimer_cpu_base *base, bool skip_equal) { }
 static inline int hrtimer_reprogram(struct hrtimer *timer,
 				    struct hrtimer_clock_base *base)
 {
@@ -825,9 +825,9 @@ EXPORT_SYMBOL_GPL(hrtimer_forward);
  * The timer is inserted in expiry order. Insertion into the
  * red black tree is O(log(n)). Must hold the base lock.
  *
- * Returns 1 when the new timer is the leftmost timer in the tree.
+ * Returns true when the new timer is the leftmost timer in the tree.
  */
-static int enqueue_hrtimer(struct hrtimer *timer,
+static bool enqueue_hrtimer(struct hrtimer *timer,
 			   struct hrtimer_clock_base *base)
 {
 	debug_activate(timer);
@@ -856,7 +856,7 @@ static int enqueue_hrtimer(struct hrtimer *timer,
  */
 static void __remove_hrtimer(struct hrtimer *timer,
 			     struct hrtimer_clock_base *base,
-			     unsigned long newstate, int reprogram)
+			     unsigned long newstate, bool reprogram)
 {
 	struct timerqueue_node *next_timer;
 	if (!(timer->state & HRTIMER_STATE_ENQUEUED))
@@ -873,7 +873,7 @@ static void __remove_hrtimer(struct hrtimer *timer,
 			expires = ktime_sub(hrtimer_get_expires(timer),
 					    base->offset);
 			if (base->cpu_base->expires_next.tv64 == expires.tv64)
-				hrtimer_force_reprogram(base->cpu_base, 1);
+				hrtimer_force_reprogram(base->cpu_base, true);
 		}
 #endif
 	}
@@ -891,7 +891,7 @@ remove_hrtimer(struct hrtimer *timer, struct hrtimer_clock_base *base)
 {
 	if (hrtimer_is_queued(timer)) {
 		unsigned long state;
-		int reprogram;
+		bool reprogram;
 
 		/*
 		 * Remove the timer and force reprogramming when high
@@ -922,7 +922,8 @@ int __hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim,
 {
 	struct hrtimer_clock_base *base, *new_base;
 	unsigned long flags;
-	int ret, leftmost;
+	int ret;
+	bool leftmost;
 
 	base = lock_hrtimer_base(timer, &flags);
 
@@ -1204,7 +1205,7 @@ static void __run_hrtimer(struct hrtimer *timer, ktime_t *now)
 	WARN_ON(!irqs_disabled());
 
 	debug_deactivate(timer);
-	__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK, 0);
+	__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK, false);
 	timer_stats_account_hrtimer(timer);
 	fn = timer->function;
 
@@ -1442,7 +1443,8 @@ void hrtimer_run_queues(void)
 	struct timerqueue_node *node;
 	struct hrtimer_cpu_base *cpu_base = this_cpu_ptr(&hrtimer_bases);
 	struct hrtimer_clock_base *base;
-	int index, gettime = 1;
+	int index;
+	bool gettime = true;
 
 	if (hrtimer_hres_active())
 		return;
@@ -1454,7 +1456,7 @@ void hrtimer_run_queues(void)
 
 		if (gettime) {
 			hrtimer_get_softirq_time(cpu_base);
-			gettime = 0;
+			gettime = false;
 		}
 
 		raw_spin_lock(&cpu_base->lock);
@@ -1652,7 +1654,7 @@ static void migrate_hrtimer_list(struct hrtimer_clock_base *old_base,
 		 * timer could be seen as !active and just vanish away
 		 * under us on another CPU
 		 */
-		__remove_hrtimer(timer, old_base, HRTIMER_STATE_MIGRATE, 0);
+		__remove_hrtimer(timer, old_base, HRTIMER_STATE_MIGRATE, false);
 		timer->base = new_base;
 		/*
 		 * Enqueue the timers on the new cpu. This does not

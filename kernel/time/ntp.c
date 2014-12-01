@@ -163,7 +163,7 @@ static inline void pps_set_freq(s64 freq)
 	pps_freq = freq;
 }
 
-static inline int is_error_status(int status)
+static inline bool is_error_status(int status)
 {
 	return (status & (STA_UNSYNC|STA_CLOCKERR))
 		/* PPS signal lost when either PPS time or
@@ -209,9 +209,9 @@ static inline void pps_clear(void) {}
 static inline void pps_dec_valid(void) {}
 static inline void pps_set_freq(s64 freq) {}
 
-static inline int is_error_status(int status)
+static inline bool is_error_status(int status)
 {
-	return status & (STA_UNSYNC|STA_CLOCKERR);
+	return !!(status & (STA_UNSYNC|STA_CLOCKERR));
 }
 
 static inline void pps_fill_timex(struct timex *txc)
@@ -231,10 +231,10 @@ static inline void pps_fill_timex(struct timex *txc)
 
 
 /**
- * ntp_synced - Returns 1 if the NTP status is not UNSYNC
+ * ntp_synced - Returns %true if the NTP status is not UNSYNC
  *
  */
-static inline int ntp_synced(void)
+static inline bool ntp_synced(void)
 {
 	return !(time_status & STA_UNSYNC);
 }

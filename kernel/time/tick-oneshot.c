@@ -28,7 +28,7 @@ int tick_program_event(ktime_t expires, int force)
 {
 	struct clock_event_device *dev = __this_cpu_read(tick_cpu_device.evtdev);
 
-	return clockevents_program_event(dev, expires, force);
+	return clockevents_program_event(dev, expires, !!force);
 }
 
 /**

@@ -528,7 +528,7 @@ static void tick_broadcast_set_affinity(struct clock_event_device *bc,
 }
 
 static int tick_broadcast_set_event(struct clock_event_device *bc, int cpu,
-				    ktime_t expires, int force)
+				    ktime_t expires, bool force)
 {
 	int ret;
 
@@ -637,7 +637,7 @@ again:
 		 * Rearm the broadcast device. If event expired,
 		 * repeat the above
 		 */
-		if (tick_broadcast_set_event(dev, next_cpu, next_event, 0))
+		if (tick_broadcast_set_event(dev, next_cpu, next_event, false))
 			goto again;
 	}
 	raw_spin_unlock(&tick_broadcast_lock);
@@ -676,7 +676,7 @@ static void broadcast_move_bc(int deadcpu)
 	if (!bc || !broadcast_needs_cpu(bc, deadcpu))
 		return;
 	/* This moves the broadcast assignment to this cpu */
-	clockevents_program_event(bc, bc->next_event, 1);
+	clockevents_program_event(bc, bc->next_event, true);
 }
 
 /*
@@ -727,7 +727,7 @@ int tick_broadcast_oneshot_control(unsigned long reason)
 			 */
 			if (!cpumask_test_cpu(cpu, tick_broadcast_force_mask) &&
 			    dev->next_event.tv64 < bc->next_event.tv64)
-				tick_broadcast_set_event(bc, cpu, dev->next_event, 1);
+				tick_broadcast_set_event(bc, cpu, dev->next_event, true);
 		}
 		/*
 		 * If the current CPU owns the hrtimer broadcast
@@ -861,7 +861,7 @@ void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
 			clockevents_set_mode(bc, CLOCK_EVT_MODE_ONESHOT);
 			tick_broadcast_init_next_event(tmpmask,
 						       tick_next_period);
-			tick_broadcast_set_event(bc, cpu, tick_next_period, 1);
+			tick_broadcast_set_event(bc, cpu, tick_next_period, true);
 		} else
 			bc->next_event.tv64 = KTIME_MAX;
 	} else {
