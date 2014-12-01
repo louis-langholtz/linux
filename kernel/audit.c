@@ -1675,15 +1675,15 @@ static void audit_log_fcaps(struct audit_buffer *ab, struct audit_names *name)
 {
 	kernel_cap_t *perm = &name->fcap.permitted;
 	kernel_cap_t *inh = &name->fcap.inheritable;
-	int log = 0;
+	bool log = false;
 
 	if (!cap_isclear(*perm)) {
 		audit_log_cap(ab, "cap_fp", perm);
-		log = 1;
+		log = true;
 	}
 	if (!cap_isclear(*inh)) {
 		audit_log_cap(ab, "cap_fi", inh);
-		log = 1;
+		log = true;
 	}
 
 	if (log)

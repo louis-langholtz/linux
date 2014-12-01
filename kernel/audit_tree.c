@@ -878,7 +878,7 @@ static void evict_chunk(struct audit_chunk *chunk)
 {
 	struct audit_tree *owner;
 	struct list_head *postponed = audit_killed_trees();
-	int need_prune = 0;
+	bool need_prune = false;
 	int n;
 
 	if (chunk->dead)
@@ -897,7 +897,7 @@ static void evict_chunk(struct audit_chunk *chunk)
 		if (!postponed) {
 			kill_rules(owner);
 			list_move(&owner->list, &prune_list);
-			need_prune = 1;
+			need_prune = true;
 		} else {
 			list_move(&owner->list, postponed);
 		}

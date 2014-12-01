@@ -441,7 +441,8 @@ static int audit_filter_rules(struct task_struct *tsk,
 			      bool task_creation)
 {
 	const struct cred *cred;
-	int i, need_sid = 1;
+	int i;
+	bool need_sid = true;
 	u32 sid;
 
 	cred = rcu_dereference_check(tsk->cred, tsk == current || task_creation);
@@ -617,7 +618,7 @@ static int audit_filter_rules(struct task_struct *tsk,
 			if (f->lsm_rule) {
 				if (need_sid) {
 					security_task_getsecid(tsk, &sid);
-					need_sid = 0;
+					need_sid = false;
 				}
 				result = security_audit_rule_match(sid, f->type,
 				                                  f->op,
@@ -721,7 +722,7 @@ static enum audit_state audit_filter_task(struct task_struct *tsk, char **key)
 	return AUDIT_BUILD_CONTEXT;
 }
 
-static int audit_in_mask(const struct audit_krule *rule, unsigned long val)
+static bool audit_in_mask(const struct audit_krule *rule, unsigned long val)
 {
 	int word, bit;
 
@@ -734,7 +735,7 @@ static int audit_in_mask(const struct audit_krule *rule, unsigned long val)
 
 	bit = AUDIT_BIT(val);
 
-	return rule->mask[word] & bit;
+	return !!(rule->mask[word] & bit);
 }
 
 /* At syscall entry and exit time, this filter is called if the
@@ -772,7 +773,7 @@ static enum audit_state audit_filter_syscall(struct task_struct *tsk,
  * Given an audit_name check the inode hash table to see if they match.
  * Called holding the rcu read lock to protect the use of audit_inode_hash
  */
-static int audit_filter_inode_name(struct task_struct *tsk,
+static bool audit_filter_inode_name(struct task_struct *tsk,
 				   struct audit_names *n,
 				   struct audit_context *ctx) {
 	int h = audit_hash_ino((u32)n->ino);
@@ -781,17 +782,17 @@ static int audit_filter_inode_name(struct task_struct *tsk,
 	enum audit_state state;
 
 	if (list_empty(list))
-		return 0;
+		return false;
 
 	list_for_each_entry_rcu(e, list, list) {
 		if (audit_in_mask(&e->rule, ctx->major) &&
 		    audit_filter_rules(tsk, &e->rule, ctx, n, &state, false)) {
 			ctx->current_state = state;
-			return 1;
+			return true;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 /* At syscall exit time, this filter is called if any audit_names have been
@@ -1032,7 +1033,8 @@ static int audit_log_single_execve_arg(struct audit_context *context,
 	size_t arg_num_len = snprintf(arg_num_len_buf, 12, "%d", arg_num) + 5;
 	size_t len, len_left, to_send;
 	size_t max_execve_audit_len = MAX_EXECVE_AUDIT_LEN;
-	unsigned int i, has_cntl = 0, too_long = 0;
+	unsigned int i;
+	bool has_cntl = false, too_long = false;
 	int ret;
 
 	/* strnlen_user includes the null we don't want to send */
@@ -1068,7 +1070,7 @@ static int audit_log_single_execve_arg(struct audit_context *context,
 			return -1;
 		}
 		buf[to_send] = '\0';
-		has_cntl = audit_string_contains_control(buf, to_send);
+		has_cntl = !!audit_string_contains_control(buf, to_send);
 		if (has_cntl) {
 			/*
 			 * hex messages get logged as 2 bytes, so we can only
@@ -1084,7 +1086,7 @@ static int audit_log_single_execve_arg(struct audit_context *context,
 	len_left = len;
 
 	if (len > max_execve_audit_len)
-		too_long = 1;
+		too_long = true;
 
 	/* rewalk the argument actually logging the message */
 	for (i = 0; len_left > 0; i++) {

@@ -383,7 +383,7 @@ static void cpuset_update_task_spread_flag(struct cpuset *cs,
  * are only set if the other's are set.  Call holding cpuset_mutex.
  */
 
-static int is_cpuset_subset(const struct cpuset *p, const struct cpuset *q)
+static bool is_cpuset_subset(const struct cpuset *p, const struct cpuset *q)
 {
 	return	cpumask_subset(p->cpus_allowed, q->cpus_allowed) &&
 		nodes_subset(p->mems_allowed, q->mems_allowed) &&
@@ -517,7 +517,7 @@ out:
  * Helper routine for generate_sched_domains().
  * Do cpusets a, b have overlapping effective cpus_allowed masks?
  */
-static int cpusets_overlap(struct cpuset *a, struct cpuset *b)
+static bool cpusets_overlap(struct cpuset *a, struct cpuset *b)
 {
 	return cpumask_intersects(a->effective_cpus, b->effective_cpus);
 }
@@ -1269,11 +1269,11 @@ static void update_tasks_flags(struct cpuset *cs)
  */
 
 static int update_flag(cpuset_flagbits_t bit, struct cpuset *cs,
-		       int turning_on)
+		       bool turning_on)
 {
 	struct cpuset *trialcs;
-	int balance_flag_changed;
-	int spread_flag_changed;
+	bool balance_flag_changed;
+	bool spread_flag_changed;
 	int err;
 
 	trialcs = alloc_trial_cpuset(cs);
@@ -1570,19 +1570,19 @@ static int cpuset_write_u64(struct cgroup_subsys_state *css, struct cftype *cft,
 
 	switch (type) {
 	case FILE_CPU_EXCLUSIVE:
-		retval = update_flag(CS_CPU_EXCLUSIVE, cs, val);
+		retval = update_flag(CS_CPU_EXCLUSIVE, cs, !!val);
 		break;
 	case FILE_MEM_EXCLUSIVE:
-		retval = update_flag(CS_MEM_EXCLUSIVE, cs, val);
+		retval = update_flag(CS_MEM_EXCLUSIVE, cs, !!val);
 		break;
 	case FILE_MEM_HARDWALL:
-		retval = update_flag(CS_MEM_HARDWALL, cs, val);
+		retval = update_flag(CS_MEM_HARDWALL, cs, !!val);
 		break;
 	case FILE_SCHED_LOAD_BALANCE:
-		retval = update_flag(CS_SCHED_LOAD_BALANCE, cs, val);
+		retval = update_flag(CS_SCHED_LOAD_BALANCE, cs, !!val);
 		break;
 	case FILE_MEMORY_MIGRATE:
-		retval = update_flag(CS_MEMORY_MIGRATE, cs, val);
+		retval = update_flag(CS_MEMORY_MIGRATE, cs, !!val);
 		break;
 	case FILE_MEMORY_PRESSURE_ENABLED:
 		cpuset_memory_pressure_enabled = !!val;
@@ -1591,10 +1591,10 @@ static int cpuset_write_u64(struct cgroup_subsys_state *css, struct cftype *cft,
 		retval = -EACCES;
 		break;
 	case FILE_SPREAD_PAGE:
-		retval = update_flag(CS_SPREAD_PAGE, cs, val);
+		retval = update_flag(CS_SPREAD_PAGE, cs, !!val);
 		break;
 	case FILE_SPREAD_SLAB:
-		retval = update_flag(CS_SPREAD_SLAB, cs, val);
+		retval = update_flag(CS_SPREAD_SLAB, cs, !!val);
 		break;
 	default:
 		retval = -EINVAL;
@@ -2011,7 +2011,7 @@ static void cpuset_css_offline(struct cgroup_subsys_state *css)
 	mutex_lock(&cpuset_mutex);
 
 	if (is_sched_load_balance(cs))
-		update_flag(CS_SCHED_LOAD_BALANCE, cs, 0);
+		update_flag(CS_SCHED_LOAD_BALANCE, cs, false);
 
 	cpuset_dec();
 	clear_bit(CS_ONLINE, &cs->flags);

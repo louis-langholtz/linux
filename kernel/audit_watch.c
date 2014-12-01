@@ -377,7 +377,7 @@ static void audit_add_to_parent(struct audit_krule *krule,
 				struct audit_parent *parent)
 {
 	struct audit_watch *w, *watch = krule->watch;
-	int watch_found = 0;
+	bool watch_found = false;
 
 	BUG_ON(!mutex_is_locked(&audit_filter_mutex));
 
@@ -385,7 +385,7 @@ static void audit_add_to_parent(struct audit_krule *krule,
 		if (strcmp(watch->path, w->path))
 			continue;
 
-		watch_found = 1;
+		watch_found = true;
 
 		/* put krule's and initial refs to temporary watch */
 		audit_put_watch(watch);
