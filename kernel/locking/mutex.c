@@ -225,7 +225,7 @@ static inline bool owner_running(struct mutex *lock, struct task_struct *owner)
  * access and not reliable.
  */
 static noinline
-int mutex_spin_on_owner(struct mutex *lock, struct task_struct *owner)
+bool mutex_spin_on_owner(struct mutex *lock, struct task_struct *owner)
 {
 	rcu_read_lock();
 	while (owner_running(lock, owner)) {
@@ -247,13 +247,13 @@ int mutex_spin_on_owner(struct mutex *lock, struct task_struct *owner)
 /*
  * Initial check for entering the mutex spinning loop
  */
-static inline int mutex_can_spin_on_owner(struct mutex *lock)
+static inline bool mutex_can_spin_on_owner(struct mutex *lock)
 {
 	struct task_struct *owner;
-	int retval = 1;
+	bool retval = true;
 
 	if (need_resched())
-		return 0;
+		return false;
 
 	rcu_read_lock();
 	owner = ACCESS_ONCE(lock->owner);

@@ -946,7 +946,7 @@ static inline bool task_current(struct rq *rq, struct task_struct *p)
 	return rq->curr == p;
 }
 
-static inline int task_running(struct rq *rq, struct task_struct *p)
+static inline bool task_running(struct rq *rq, struct task_struct *p)
 {
 #ifdef CONFIG_SMP
 	return p->on_cpu;
@@ -983,7 +983,7 @@ static inline void prepare_lock_switch(struct rq *rq, struct task_struct *next)
 	 * SMP rebalancing from interrupt is the only thing that cares
 	 * here.
 	 */
-	next->on_cpu = 1;
+	next->on_cpu = true;
 #endif
 }
 
@@ -996,7 +996,7 @@ static inline void finish_lock_switch(struct rq *rq, struct task_struct *prev)
 	 * finished.
 	 */
 	smp_wmb();
-	prev->on_cpu = 0;
+	prev->on_cpu = false;
 #endif
 #ifdef CONFIG_DEBUG_SPINLOCK
 	/* this is a valid case when another task releases the spinlock */

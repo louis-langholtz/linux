@@ -1975,7 +1975,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 		memset(&p->sched_info, 0, sizeof(p->sched_info));
 #endif
 #if defined(CONFIG_SMP)
-	p->on_cpu = 0;
+	p->on_cpu = false;
 #endif
 	init_task_preempt_count(p);
 #ifdef CONFIG_SMP
@@ -4632,7 +4632,7 @@ void init_idle(struct task_struct *idle, int cpu)
 	rq->curr = rq->idle = idle;
 	idle->on_rq = TASK_ON_RQ_QUEUED;
 #if defined(CONFIG_SMP)
-	idle->on_cpu = 1;
+	idle->on_cpu = true;
 #endif
 	raw_spin_unlock_irqrestore(&rq->lock, flags);
 
