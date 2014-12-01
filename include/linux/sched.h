@@ -92,7 +92,7 @@ struct sched_param {
  *  @size		size of the structure, for fwd/bwd compat.
  *
  *  @sched_policy	task's scheduling policy
- *  @sched_flags	for customizing the scheduler behaviour
+ *  @sched_flags	for customizing the scheduler behavior
  *  @sched_nice		task's nice value      (SCHED_NORMAL/BATCH)
  *  @sched_priority	task's static priority (SCHED_FIFO/RR)
  *  @sched_deadline	representative of the task's deadline
@@ -250,14 +250,14 @@ extern char ___assert_task_state[1 - 2*!!(
 
 /*
  * set_current_state() includes a barrier so that the write of current->state
- * is correctly serialised wrt the caller's subsequent test of whether to
+ * is correctly serialized wrt the caller's subsequent test of whether to
  * actually sleep:
  *
  *	set_current_state(TASK_UNINTERRUPTIBLE);
  *	if (do_i_need_to_sleep())
  *		schedule();
  *
- * If the caller does not need such serialisation then use __set_current_state()
+ * If the caller does not need such serialization then use __set_current_state()
  */
 #define __set_current_state(state_value)			\
 	do { current->state = (state_value); } while (0)
@@ -318,7 +318,7 @@ static inline void show_state(void)
 extern void show_regs(struct pt_regs *);
 
 /*
- * TASK is a pointer to the task whose backtrace we want to see (or NULL for current
+ * TASK is a pointer to the task whose back trace we want to see (or NULL for current
  * task), SP is the stack pointer of the first frame that should be shown in the back
  * trace (or NULL if the entire call-chain of the task should be shown).
  */
@@ -481,7 +481,7 @@ struct cpu_itimer {
 };
 
 /**
- * struct cputime - snaphsot of system and user cputime
+ * struct cputime - snapshot of system and user cputime
  * @utime: time spent in user mode
  * @stime: time spent in system mode
  *
@@ -692,11 +692,11 @@ struct signal_struct {
 #endif
 #ifdef CONFIG_CGROUPS
 	/*
-	 * group_rwsem prevents new tasks from entering the threadgroup and
+	 * group_rwsem prevents new tasks from entering the thread group and
 	 * member tasks from exiting,a more specifically, setting of
 	 * PF_EXITING.  fork and exit paths are protected with this rwsem
 	 * using threadgroup_change_begin/end().  Users which require
-	 * threadgroup to remain stable should use threadgroup_[un]lock()
+	 * thread group to remain stable should use threadgroup_[un]lock()
 	 * which also takes care of exec path.  Currently, cgroup is the
 	 * only user.
 	 */
@@ -930,8 +930,8 @@ struct sched_domain {
 
 	/* Runtime fields. */
 	unsigned long last_balance;	/* init to jiffies. units in jiffies */
-	unsigned int balance_interval;	/* initialise to 1. units in ms. */
-	unsigned int nr_balance_failed; /* initialise to 0 */
+	unsigned int balance_interval;	/* initialize to 1. units in ms. */
+	unsigned int nr_balance_failed; /* initialize to 0 */
 
 	/* idle_balance() stats */
 	u64 max_newidle_lb_cost;
@@ -1182,15 +1182,15 @@ struct sched_dl_entity {
 
 	/*
 	 * Actual scheduling parameters. Initialized with the values above,
-	 * they are continously updated during task execution. Note that
+	 * they are continuously updated during task execution. Note that
 	 * the remaining runtime could be < 0 in case we are in overrun.
 	 */
 	s64 runtime;		/* remaining runtime for this instance	*/
 	u64 deadline;		/* absolute deadline for this instance	*/
-	unsigned int flags;	/* specifying the scheduler behaviour	*/
+	unsigned int flags;	/* specifying the scheduler behavior	*/
 
 	/*
-	 * Some bool flags:
+	 * Some boolean flags:
 	 *
 	 * @dl_throttled tells if we exhausted the runtime. If so, the
 	 * task has to wait for a replenishment to be performed at the
@@ -1346,7 +1346,7 @@ struct task_struct {
 	 */
 	struct list_head children;	/* list of my children */
 	struct list_head sibling;	/* linkage in my parent's children list */
-	struct task_struct *group_leader;	/* threadgroup leader */
+	struct task_struct *group_leader;	/* thread group leader */
 
 	/*
 	 * ptraced is the list of tasks this task is using ptrace on.
@@ -1512,7 +1512,7 @@ struct task_struct {
 #endif
 #ifdef CONFIG_CPUSETS
 	nodemask_t mems_allowed;	/* Protected by alloc_lock */
-	seqcount_t mems_allowed_seq;	/* Seqence no to catch updates */
+	seqcount_t mems_allowed_seq;	/* Sequence no to catch updates */
 	int cpuset_mem_spread_rotor;
 	int cpuset_slab_spread_rotor;
 #endif
@@ -2535,7 +2535,7 @@ static inline int thread_group_empty(struct task_struct *p)
 
 /*
  * Protects ->fs, ->files, ->mm, ->group_info, ->comm, keyring
- * subscriptions and synchronises with wait4().  Also used in procfs.  Also
+ * subscriptions and synchronizes with wait4().  Also used in procfs.  Also
  * pins the final release of task.io_context.  Also protects ->cpuset and
  * ->cgroup.subsys[]. And ->vfork_done.
  *
