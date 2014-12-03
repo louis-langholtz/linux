@@ -2315,13 +2315,14 @@ static u32 __compute_runnable_contrib(u64 n)
  *   load_avg = u_0` + y*(u_0 + u_1*y + u_2*y^2 + ... )
  *            = u_0 + u_1*y + u_2*y^2 + ... [re-labeling u_i --> u_{i+1}]
  */
-static __always_inline int __update_entity_runnable_avg(u64 now,
+static __always_inline bool __update_entity_runnable_avg(u64 now,
 							struct sched_avg *sa,
 							bool runnable)
 {
 	u64 delta, periods;
 	u32 runnable_contrib;
-	int delta_w, decayed = 0;
+	int delta_w;
+	bool decayed = false;
 
 	delta = now - sa->last_runnable_update;
 	/*
@@ -2346,7 +2347,7 @@ static __always_inline int __update_entity_runnable_avg(u64 now,
 	delta_w = sa->runnable_avg_period % 1024;
 	if (delta + delta_w >= 1024) {
 		/* period roll-over */
-		decayed = 1;
+		decayed = true;
 
 		/*
 		 * Now that we know we're crossing a period boundary, figure
@@ -4279,7 +4280,7 @@ static long effective_load(struct task_group *tg, int cpu, long wl, long wg)
 
 #endif
 
-static int wake_wide(struct task_struct *p)
+static bool wake_wide(struct task_struct *p)
 {
 	int factor = this_cpu_read(sd_llc_size);
 
@@ -4295,27 +4296,27 @@ static int wake_wide(struct task_struct *p)
 		 * it alone.
 		 */
 		if (current->wakee_flips > (factor * p->wakee_flips))
-			return 1;
+			return true;
 	}
 
-	return 0;
+	return false;
 }
 
-static int wake_affine(struct sched_domain *sd, struct task_struct *p, int sync)
+static bool wake_affine(struct sched_domain *sd, struct task_struct *p, int sync)
 {
 	s64 this_load, load;
 	s64 this_eff_load, prev_eff_load;
 	int idx, this_cpu, prev_cpu;
 	struct task_group *tg;
 	unsigned long weight;
-	int balanced;
+	bool balanced;
 
 	/*
 	 * If we wake multiple tasks be careful to not bounce
 	 * ourselves around too much.
 	 */
 	if (wake_wide(p))
-		return 0;
+		return false;
 
 	idx	  = sd->wake_idx;
 	this_cpu  = smp_processor_id();
@@ -4366,12 +4367,12 @@ static int wake_affine(struct sched_domain *sd, struct task_struct *p, int sync)
 	schedstat_inc(p, se.statistics.nr_wakeups_affine_attempts);
 
 	if (!balanced)
-		return 0;
+		return false;
 
 	schedstat_inc(sd, ttwu_move_affine);
 	schedstat_inc(p, se.statistics.nr_wakeups_affine);
 
-	return 1;
+	return true;
 }
 
 /*
@@ -4732,7 +4733,7 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
 	struct sched_entity *se = &curr->se, *pse = &p->se;
 	struct cfs_rq *cfs_rq = task_cfs_rq(curr);
 	int scale = cfs_rq->nr_running >= sched_nr_latency;
-	int next_buddy_marked = 0;
+	bool next_buddy_marked = false;
 
 	if (unlikely(se == pse))
 		return;
@@ -4748,7 +4749,7 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
 
 	if (sched_feat(NEXT_BUDDY) && scale && !(wake_flags & WF_FORK)) {
 		set_next_buddy(pse);
-		next_buddy_marked = 1;
+		next_buddy_marked = true;
 	}
 
 	/*
@@ -5152,17 +5153,17 @@ struct lb_env {
 /*
  * Is this task likely cache-hot:
  */
-static int task_hot(struct task_struct *p, struct lb_env *env)
+static bool task_hot(struct task_struct *p, struct lb_env *env)
 {
 	s64 delta;
 
 	lockdep_assert_held(&env->src_rq->lock);
 
 	if (p->sched_class != &fair_sched_class)
-		return 0;
+		return false;
 
 	if (unlikely(p->policy == SCHED_IDLE))
-		return 0;
+		return false;
 
 	/*
 	 * Buddy candidates are cache hot:
@@ -5170,12 +5171,12 @@ static int task_hot(struct task_struct *p, struct lb_env *env)
 	if (sched_feat(CACHE_HOT_BUDDY) && env->dst_rq->nr_running &&
 			(&p->se == cfs_rq_of(&p->se)->next ||
 			 &p->se == cfs_rq_of(&p->se)->last))
-		return 1;
+		return true;
 
 	if (sysctl_sched_migration_cost == -1)
-		return 1;
+		return true;
 	if (sysctl_sched_migration_cost == 0)
-		return 0;
+		return false;
 
 	delta = rq_clock_task(env->src_rq) - p->se.exec_start;
 
@@ -5274,9 +5275,9 @@ static inline bool migrate_degrades_locality(struct task_struct *p,
  * can_migrate_task - may task p from runqueue rq be migrated to this_cpu?
  */
 static
-int can_migrate_task(struct task_struct *p, struct lb_env *env)
+bool can_migrate_task(struct task_struct *p, struct lb_env *env)
 {
-	int tsk_cache_hot = 0;
+	bool tsk_cache_hot = false;
 
 	lockdep_assert_held(&env->src_rq->lock);
 
@@ -5288,7 +5289,7 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
 	 * 4) are cache-hot on their current CPU.
 	 */
 	if (throttled_lb_pair(task_group(p), env->src_cpu, env->dst_cpu))
-		return 0;
+		return false;
 
 	if (!cpumask_test_cpu(env->dst_cpu, tsk_cpus_allowed(p))) {
 		int cpu;
@@ -5306,7 +5307,7 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
 		 * one in current iteration.
 		 */
 		if (!env->dst_grpmask || (env->flags & LBF_DST_PINNED))
-			return 0;
+			return false;
 
 		/* Prevent to re-select dst_cpu via env's cpus */
 		for_each_cpu_and(cpu, env->dst_grpmask, env->cpus) {
@@ -5317,7 +5318,7 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
 			}
 		}
 
-		return 0;
+		return false;
 	}
 
 	/* Record that we found atleast one task that could run on dst_cpu */
@@ -5325,7 +5326,7 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
 
 	if (task_running(env->src_rq, p)) {
 		schedstat_inc(p, se.statistics.nr_failed_migrations_running);
-		return 0;
+		return false;
 	}
 
 	/*
@@ -5344,11 +5345,11 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
 			schedstat_inc(env->sd, lb_hot_gained[env->idle]);
 			schedstat_inc(p, se.statistics.nr_forced_migrations);
 		}
-		return 1;
+		return true;
 	}
 
 	schedstat_inc(p, se.statistics.nr_failed_migrations_hot);
-	return 0;
+	return false;
 }
 
 /*
@@ -6216,31 +6217,31 @@ next_group:
  * assuming lower CPU number will be equivalent to lower a SMT thread
  * number.
  *
- * Return: 1 when packing is required and a task should be moved to
+ * Return: %true when packing is required and a task should be moved to
  * this CPU.  The amount of the imbalance is returned in *imbalance.
  *
  * @env: The load balancing environment.
  * @sds: Statistics of the sched_domain which is to be packed
  */
-static int check_asym_packing(struct lb_env *env, struct sd_lb_stats *sds)
+static bool check_asym_packing(struct lb_env *env, struct sd_lb_stats *sds)
 {
 	int busiest_cpu;
 
 	if (!(env->sd->flags & SD_ASYM_PACKING))
-		return 0;
+		return false;
 
 	if (!sds->busiest)
-		return 0;
+		return false;
 
 	busiest_cpu = group_first_cpu(sds->busiest);
 	if (env->dst_cpu > busiest_cpu)
-		return 0;
+		return false;
 
 	env->imbalance = DIV_ROUND_CLOSEST(
 		sds->busiest_stat.avg_load * sds->busiest_stat.group_capacity,
 		SCHED_CAPACITY_SCALE);
 
-	return 1;
+	return true;
 }
 
 /**
@@ -6571,7 +6572,7 @@ static struct rq *find_busiest_queue(struct lb_env *env,
 /* Working cpumask for load_balance and load_balance_newidle. */
 DEFINE_PER_CPU(cpumask_var_t, load_balance_mask);
 
-static int need_active_balance(struct lb_env *env)
+static bool need_active_balance(struct lb_env *env)
 {
 	struct sched_domain *sd = env->sd;
 
@@ -6583,7 +6584,7 @@ static int need_active_balance(struct lb_env *env)
 		 * lowest numbered CPUs.
 		 */
 		if ((sd->flags & SD_ASYM_PACKING) && env->src_cpu > env->dst_cpu)
-			return 1;
+			return true;
 	}
 
 	return unlikely(sd->nr_balance_failed > sd->cache_nice_tries+2);
@@ -6591,7 +6592,7 @@ static int need_active_balance(struct lb_env *env)
 
 static int active_load_balance_cpu_stop(void *data);
 
-static int should_we_balance(struct lb_env *env)
+static bool should_we_balance(struct lb_env *env)
 {
 	struct sched_group *sg = env->sd->groups;
 	struct cpumask *sg_cpus, *sg_mask;
@@ -6602,7 +6603,7 @@ static int should_we_balance(struct lb_env *env)
 	 * to do the newly idle load balance.
 	 */
 	if (env->idle == CPU_NEWLY_IDLE)
-		return 1;
+		return true;
 
 	sg_cpus = sched_group_cpus(sg);
 	sg_mask = sched_group_mask(sg);
@@ -7095,7 +7096,7 @@ out_unlock:
 	return 0;
 }
 
-static inline int on_null_domain(struct rq *rq)
+static inline bool on_null_domain(struct rq *rq)
 {
 	return unlikely(!rcu_dereference_sched(rq->sd));
 }
@@ -7402,7 +7403,7 @@ end:
  *   - For SD_ASYM_PACKING, if the lower numbered cpu's in the scheduler
  *     domain span are idle.
  */
-static inline int nohz_kick_needed(struct rq *rq)
+static inline bool nohz_kick_needed(struct rq *rq)
 {
 	unsigned long now = jiffies;
 	struct sched_domain *sd;
@@ -7410,7 +7411,7 @@ static inline int nohz_kick_needed(struct rq *rq)
 	int nr_busy, cpu = rq->cpu;
 
 	if (unlikely(rq->idle_balance))
-		return 0;
+		return false;
 
        /*
 	* We may be recently in ticked or tickless idle mode. At the first
@@ -7424,10 +7425,10 @@ static inline int nohz_kick_needed(struct rq *rq)
 	 * balancing.
 	 */
 	if (likely(!atomic_read(&nohz.nr_cpus)))
-		return 0;
+		return false;
 
 	if (time_before(now, nohz.next_balance))
-		return 0;
+		return false;
 
 	if (rq->nr_running >= 2)
 		goto need_kick;
@@ -7450,12 +7451,12 @@ static inline int nohz_kick_needed(struct rq *rq)
 		goto need_kick_unlock;
 
 	rcu_read_unlock();
-	return 0;
+	return false;
 
 need_kick_unlock:
 	rcu_read_unlock();
 need_kick:
-	return 1;
+	return true;
 }
 #else
 static void nohz_idle_balance(struct rq *this_rq, enum cpu_idle_type idle) { }

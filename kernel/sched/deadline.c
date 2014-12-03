@@ -576,7 +576,7 @@ static
 bool dl_runtime_exceeded(struct rq *rq, struct sched_dl_entity *dl_se)
 {
 	int dmiss = dl_time_before(dl_se->deadline, rq_clock(rq));
-	int rorun = dl_se->runtime <= 0;
+	bool rorun = dl_se->runtime <= 0;
 
 	if (!rorun && !dmiss)
 		return false;
