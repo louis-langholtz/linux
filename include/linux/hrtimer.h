@@ -390,7 +390,7 @@ extern ktime_t hrtimer_get_next_event(void);
  * callback function is running or it's in the state of being migrated
  * to another cpu.
  */
-static inline int hrtimer_active(const struct hrtimer *timer)
+static inline bool hrtimer_active(const struct hrtimer *timer)
 {
 	return timer->state != HRTIMER_STATE_INACTIVE;
 }

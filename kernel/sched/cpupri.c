@@ -63,9 +63,9 @@ static int convert_prio(int prio)
  * any discrepancies created by racing against the uncertainty of the current
  * priority configuration.
  *
- * Return: (int)bool - CPUs were found
+ * Return: bool - CPUs were found
  */
-int cpupri_find(struct cpupri *cp, struct task_struct *p,
+bool cpupri_find(struct cpupri *cp, struct task_struct *p,
 		struct cpumask *lowest_mask)
 {
 	int idx = 0;
@@ -75,10 +75,10 @@ int cpupri_find(struct cpupri *cp, struct task_struct *p,
 
 	for (idx = 0; idx < task_pri; idx++) {
 		struct cpupri_vec *vec  = &cp->pri_to_cpu[idx];
-		int skip = 0;
+		bool skip = 0;
 
 		if (!atomic_read(&(vec)->count))
-			skip = 1;
+			skip = true;
 		/*
 		 * When looking at the vector, we need to read the counter,
 		 * do a memory barrier, then read the mask.
@@ -121,10 +121,10 @@ int cpupri_find(struct cpupri *cp, struct task_struct *p,
 				continue;
 		}
 
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 /**
@@ -141,7 +141,7 @@ void cpupri_set(struct cpupri *cp, int cpu, int newpri)
 {
 	int *currpri = &cp->cpu_to_pri[cpu];
 	int oldpri = *currpri;
-	int do_mb = 0;
+	bool do_mb = false;
 
 	newpri = convert_prio(newpri);
 
@@ -167,7 +167,7 @@ void cpupri_set(struct cpupri *cp, int cpu, int newpri)
 		 */
 		smp_mb__before_atomic();
 		atomic_inc(&(vec)->count);
-		do_mb = 1;
+		do_mb = true;
 	}
 	if (likely(oldpri != CPUPRI_INVALID)) {
 		struct cpupri_vec *vec  = &cp->pri_to_cpu[oldpri];
