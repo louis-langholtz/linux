@@ -293,12 +293,12 @@ int kgdb_hex2long(char **ptr, unsigned long *long_val)
 {
 	int hex_val;
 	int num = 0;
-	int negate = 0;
+	bool negate = false;
 
 	*long_val = 0;
 
 	if (**ptr == '-') {
-		negate = 1;
+		negate = true;
 		(*ptr)++;
 	}
 	while (**ptr) {
@@ -364,7 +364,7 @@ void gdb_regs_to_pt_regs(unsigned long *gdb_regs, struct pt_regs *regs)
 #endif /* DBG_MAX_REG_NUM > 0 */
 
 /* Write memory due to an 'M' or 'X' packet. */
-static int write_mem_msg(int binary)
+static int write_mem_msg(bool binary)
 {
 	char *ptr = &remcom_in_buffer[1];
 	unsigned long addr;
@@ -407,13 +407,13 @@ static void error_packet(char *pkt, int error)
 static char *pack_threadid(char *pkt, unsigned char *id)
 {
 	unsigned char *limit;
-	int lzero = 1;
+	bool lzero = true;
 
 	limit = id + (BUF_THREAD_ID_SIZE / 2);
 	while (id < limit) {
 		if (!lzero || *id != 0) {
 			pkt = hex_byte_pack(pkt, *id);
-			lzero = 0;
+			lzero = false;
 		}
 		id++;
 	}
@@ -574,7 +574,7 @@ static void gdb_cmd_memread(struct kgdb_state *ks)
 /* Handle the 'M' memory write bytes */
 static void gdb_cmd_memwrite(struct kgdb_state *ks)
 {
-	int err = write_mem_msg(0);
+	int err = write_mem_msg(false);
 
 	if (err)
 		error_packet(remcom_out_buffer, err);
@@ -639,7 +639,7 @@ static void gdb_cmd_reg_set(struct kgdb_state *ks)
 /* Handle the 'X' memory binary write bytes */
 static void gdb_cmd_binwrite(struct kgdb_state *ks)
 {
-	int err = write_mem_msg(1);
+	int err = write_mem_msg(true);
 
 	if (err)
 		error_packet(remcom_out_buffer, err);
@@ -702,7 +702,7 @@ static void gdb_cmd_query(struct kgdb_state *ks)
 	char *ptr;
 	int i;
 	int cpu;
-	int finished = 0;
+	bool finished = false;
 
 	switch (remcom_in_buffer[1]) {
 	case 's':
@@ -731,7 +731,7 @@ static void gdb_cmd_query(struct kgdb_state *ks)
 				*(ptr++) = ',';
 				ks->thr_query++;
 				if (ks->thr_query % KGDB_MAX_THREAD_QUERY == 0)
-					finished = 1;
+					finished = true;
 			}
 			i++;
 		} while_each_thread(g, p);

@@ -4,7 +4,7 @@
  *  Copyright (C) 2008 Thomas Gleixner <tglx@linutronix.de>
  *  Copyright (C) 2008-2011 Red Hat, Inc., Ingo Molnar
  *  Copyright (C) 2008-2011 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
- *  Copyright  ©  2009 Paul Mackerras, IBM Corp. <paulus@au1.ibm.com>
+ *  Copyright  ï¿½  2009 Paul Mackerras, IBM Corp. <paulus@au1.ibm.com>
  *
  * For licensing details see kernel-base/COPYING
  */
@@ -162,8 +162,8 @@ perf_callchain(struct perf_event *event, struct pt_regs *regs)
 	int rctx;
 	struct perf_callchain_entry *entry;
 
-	int kernel = !event->attr.exclude_callchain_kernel;
-	int user   = !event->attr.exclude_callchain_user;
+	bool kernel = !event->attr.exclude_callchain_kernel;
+	bool user   = !event->attr.exclude_callchain_user;
 
 	if (!kernel && !user)
 		return NULL;

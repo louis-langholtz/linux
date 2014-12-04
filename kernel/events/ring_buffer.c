@@ -106,7 +106,8 @@ int perf_output_begin(struct perf_output_handle *handle,
 {
 	struct ring_buffer *rb;
 	unsigned long tail, offset, head;
-	int have_lost, page_shift;
+	bool have_lost;
+	int page_shift;
 	struct {
 		struct perf_event_header header;
 		u64			 id;
@@ -130,7 +131,7 @@ int perf_output_begin(struct perf_output_handle *handle,
 	handle->rb    = rb;
 	handle->event = event;
 
-	have_lost = local_read(&rb->lost);
+	have_lost = !!local_read(&rb->lost);
 	if (unlikely(have_lost)) {
 		size += sizeof(lost_event);
 		if (event->attr.sample_id_all)
