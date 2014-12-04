@@ -1,7 +1,7 @@
 #ifndef __LICENSE_H
 #define __LICENSE_H
 
-static inline int license_is_gpl_compatible(const char *license)
+static inline bool license_is_gpl_compatible(const char *license)
 {
 	return (strcmp(license, "GPL") == 0
 		|| strcmp(license, "GPL v2") == 0

@@ -389,14 +389,14 @@ setundefined:
  * the core kgdb_handle_exception, because it will wait for the
  * debugger to attach.
  */
-static int kgdb_io_ready(int print_wait)
+static bool kgdb_io_ready(int print_wait)
 {
 	if (!dbg_io_ops)
-		return 0;
+		return false;
 	if (kgdb_connected)
-		return 1;
+		return true;
 	if (atomic_read(&kgdb_setting_breakpoint))
-		return 1;
+		return true;
 	if (print_wait) {
 #ifdef CONFIG_KGDB_KDB
 		if (!dbg_kdb_mode)
@@ -405,15 +405,15 @@ static int kgdb_io_ready(int print_wait)
 		printk(KERN_CRIT "KGDB: Waiting for remote debugger\n");
 #endif
 	}
-	return 1;
+	return true;
 }
 
-static int kgdb_reenter_check(struct kgdb_state *ks)
+static bool kgdb_reenter_check(struct kgdb_state *ks)
 {
 	unsigned long addr;
 
 	if (atomic_read(&kgdb_active) != raw_smp_processor_id())
-		return 0;
+		return false;
 
 	/* Panic on recursive debugger calls: */
 	exception_level++;
@@ -434,7 +434,7 @@ static int kgdb_reenter_check(struct kgdb_state *ks)
 			addr);
 		WARN_ON_ONCE(1);
 
-		return 1;
+		return true;
 	}
 	dbg_remove_all_break();
 	kgdb_skipexception(ks->ex_vector, ks->linux_regs);
@@ -452,7 +452,7 @@ static int kgdb_reenter_check(struct kgdb_state *ks)
 	dump_stack();
 	panic("Recursive entry to debugger");
 
-	return 1;
+	return true;
 }
 
 static void dbg_touch_watchdogs(void)
