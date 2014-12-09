@@ -77,7 +77,7 @@ module_param(lock_stat, int, 0644);
  */
 static arch_spinlock_t lockdep_lock = (arch_spinlock_t)__ARCH_SPIN_LOCK_UNLOCKED;
 
-static int graph_lock(void)
+static bool graph_lock(void)
 {
 	arch_spin_lock(&lockdep_lock);
 	/*
@@ -88,11 +88,11 @@ static int graph_lock(void)
 	 */
 	if (!debug_locks) {
 		arch_spin_unlock(&lockdep_lock);
-		return 0;
+		return false;
 	}
 	/* prevent any recursions within lockdep from causing deadlocks */
 	current->lockdep_recursion++;
-	return 1;
+	return true;
 }
 
 static inline int graph_unlock(void)
@@ -123,7 +123,7 @@ static inline int debug_locks_off_graph_unlock(void)
 	return ret;
 }
 
-static int lockdep_initialized;
+static bool lockdep_initialized;
 
 unsigned long nr_list_entries;
 static struct lock_list list_entries[MAX_LOCKDEP_ENTRIES];
@@ -593,7 +593,7 @@ static int very_verbose(struct lock_class *class)
  * Is this the address of a static object:
  */
 #ifdef __KERNEL__
-static int static_obj(void *obj)
+static bool static_obj(void *obj)
 {
 	unsigned long start = (unsigned long) &_stext,
 		      end   = (unsigned long) &_end,
@@ -603,16 +603,16 @@ static int static_obj(void *obj)
 	 * static variable?
 	 */
 	if ((addr >= start) && (addr < end))
-		return 1;
+		return true;
 
 	if (arch_is_kernel_data(addr))
-		return 1;
+		return true;
 
 	/*
 	 * in-kernel percpu var?
 	 */
 	if (is_kernel_percpu_address(addr))
-		return 1;
+		return true;
 
 	/*
 	 * module static or percpu var?
@@ -723,7 +723,7 @@ look_up_lock_class(struct lockdep_map *lock, unsigned int subclass)
  * itself, so actual lookup of the hash should be once per lock object.
  */
 static inline struct lock_class *
-register_lock_class(struct lockdep_map *lock, unsigned int subclass, int force)
+register_lock_class(struct lockdep_map *lock, unsigned int subclass, bool force)
 {
 	struct lockdep_subclass_key *key;
 	struct list_head *hash_head;
@@ -2219,12 +2219,12 @@ print_usage_bug_scenario(struct held_lock *lock)
 	printk("\n *** DEADLOCK ***\n\n");
 }
 
-static int
+static bool
 print_usage_bug(struct task_struct *curr, struct held_lock *this,
 		enum lock_usage_bit prev_bit, enum lock_usage_bit new_bit)
 {
 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
-		return 0;
+		return false;
 
 	printk("\n");
 	printk("=================================\n");
@@ -2255,19 +2255,19 @@ print_usage_bug(struct task_struct *curr, struct held_lock *this,
 	printk("\nstack backtrace:\n");
 	dump_stack();
 
-	return 0;
+	return false;
 }
 
 /*
  * Print out an error if an invalid bit is set:
  */
-static inline int
+static inline bool
 valid_state(struct task_struct *curr, struct held_lock *this,
 	    enum lock_usage_bit new_bit, enum lock_usage_bit bad_bit)
 {
 	if (unlikely(hlock_class(this)->usage_mask & (1 << bad_bit)))
 		return print_usage_bug(curr, this, bad_bit, new_bit);
-	return 1;
+	return true;
 }
 
 static int mark_lock(struct task_struct *curr, struct held_lock *this,
@@ -2997,7 +2997,7 @@ void lockdep_init_map(struct lockdep_map *lock, const char *name,
 		return;
 
 	if (subclass)
-		register_lock_class(lock, subclass, 1);
+		register_lock_class(lock, subclass, true);
 }
 EXPORT_SYMBOL_GPL(lockdep_init_map);
 
@@ -3077,7 +3077,7 @@ static int __lock_acquire(struct lockdep_map *lock, unsigned int subclass,
 	 * Not cached?
 	 */
 	if (unlikely(!class)) {
-		class = register_lock_class(lock, subclass, 0);
+		class = register_lock_class(lock, subclass, false);
 		if (!class)
 			return 0;
 	}
@@ -3329,7 +3329,7 @@ __lock_set_class(struct lockdep_map *lock, const char *name,
 
 found_it:
 	lockdep_init_map(lock, name, key, 0);
-	class = register_lock_class(lock, subclass, 0);
+	class = register_lock_class(lock, subclass, false);
 	hlock->class_idx = class - lock_classes + 1;
 
 	curr->lockdep_depth = i;
@@ -3882,7 +3882,7 @@ static void zap_class(struct lock_class *class)
 	class->key = NULL;
 }
 
-static inline int within(const void *addr, void *start, unsigned long size)
+static inline bool within(const void *addr, void *start, unsigned long size)
 {
 	return addr >= start && addr < start + size;
 }
@@ -3893,7 +3893,7 @@ void lockdep_free_key_range(void *start, unsigned long size)
 	struct list_head *head;
 	unsigned long flags;
 	int i;
-	int locked;
+	bool locked;
 
 	raw_local_irq_save(flags);
 	locked = graph_lock();
@@ -3924,7 +3924,7 @@ void lockdep_reset_lock(struct lockdep_map *lock)
 	struct list_head *head;
 	unsigned long flags;
 	int i, j;
-	int locked;
+	bool locked;
 
 	raw_local_irq_save(flags);
 
@@ -3991,7 +3991,7 @@ void lockdep_init(void)
 	for (i = 0; i < CHAINHASH_SIZE; i++)
 		INIT_LIST_HEAD(chainhash_table + i);
 
-	lockdep_initialized = 1;
+	lockdep_initialized = true;
 }
 
 void __init lockdep_info(void)

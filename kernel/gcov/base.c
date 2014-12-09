@@ -20,7 +20,7 @@
 #include <linux/mutex.h>
 #include "gcov.h"
 
-static int gcov_events_enabled;
+static bool gcov_events_enabled;
 static DEFINE_MUTEX(gcov_lock);
 
 /*
@@ -104,7 +104,7 @@ void gcov_enable_events(void)
 	struct gcov_info *info = NULL;
 
 	mutex_lock(&gcov_lock);
-	gcov_events_enabled = 1;
+	gcov_events_enabled = true;
 
 	/* Perform event callback for previously registered entries. */
 	while ((info = gcov_info_next(info)))
@@ -114,7 +114,7 @@ void gcov_enable_events(void)
 }
 
 #ifdef CONFIG_MODULES
-static inline int within(void *addr, void *start, unsigned long size)
+static inline bool within(void *addr, void *start, unsigned long size)
 {
 	return ((addr >= start) && (addr < start + size));
 }
