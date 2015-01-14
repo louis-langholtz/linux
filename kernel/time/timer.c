@@ -760,7 +760,7 @@ static struct tvec_base *lock_timer_base(struct timer_list *timer,
 
 static inline int
 __mod_timer(struct timer_list *timer, unsigned long expires,
-						bool pending_only, int pinned)
+						bool pending_only, bool pinned)
 {
 	struct tvec_base *base, *new_base;
 	unsigned long flags;

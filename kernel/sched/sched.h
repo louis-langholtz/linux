@@ -607,7 +607,7 @@ struct rq {
 	struct cpu_stop_work active_balance_work;
 	/* cpu of this runqueue: */
 	int cpu;
-	int online;
+	bool online;
 
 	struct list_head cfs_tasks;
 

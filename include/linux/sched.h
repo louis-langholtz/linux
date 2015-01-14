@@ -334,11 +334,11 @@ extern int runqueue_is_locked(int cpu);
 #if defined(CONFIG_SMP) && defined(CONFIG_NO_HZ_COMMON)
 extern void nohz_balance_enter_idle(int cpu);
 extern void set_cpu_sd_state_idle(void);
-extern int get_nohz_timer_target(int pinned);
+extern int get_nohz_timer_target(bool pinned);
 #else
 static inline void nohz_balance_enter_idle(int cpu) { }
 static inline void set_cpu_sd_state_idle(void) { }
-static inline int get_nohz_timer_target(int pinned)
+static inline int get_nohz_timer_target(bool pinned)
 {
 	return smp_processor_id();
 }
@@ -1246,7 +1246,7 @@ struct sched_dl_entity {
 	 * @dl_yielded tells if task gave up the cpu before consuming
 	 * all its available runtime during the last job.
 	 */
-	int dl_throttled, dl_new, dl_boosted, dl_yielded;
+	bool dl_throttled, dl_new, dl_boosted, dl_yielded;
 
 	/*
 	 * Bandwidth enforcement timer. Each -deadline task has its
@@ -2252,7 +2252,7 @@ static inline int task_nice(const struct task_struct *p)
 {
 	return PRIO_TO_NICE((p)->static_prio);
 }
-extern int can_nice(const struct task_struct *p, const int nice);
+extern bool can_nice(const struct task_struct *p, const int nice);
 extern bool task_curr(const struct task_struct *p);
 extern bool idle_cpu(int cpu);
 extern int sched_setscheduler(struct task_struct *, int,

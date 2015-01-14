@@ -643,7 +643,7 @@ void resched_cpu(int cpu)
  * selecting an idle cpu will add more delays to the timers than intended
  * (as that cpu's timer base may not be uptodate wrt jiffies etc).
  */
-int get_nohz_timer_target(int pinned)
+int get_nohz_timer_target(bool pinned)
 {
 	int cpu = smp_processor_id();
 	int i;
@@ -1216,7 +1216,7 @@ static int migration_cpu_stop(void *data);
 unsigned long wait_task_inactive(struct task_struct *p, long match_state)
 {
 	unsigned long flags;
-	int running, queued;
+	bool running, queued;
 	unsigned long ncsw;
 	struct rq *rq;
 
@@ -3004,7 +3004,8 @@ EXPORT_SYMBOL(default_wake_function);
  */
 void rt_mutex_setprio(struct task_struct *p, int prio)
 {
-	int oldprio, queued, running, enqueue_flag = 0;
+	int oldprio, enqueue_flag = 0;
+	bool queued, running;
 	struct rq *rq;
 	const struct sched_class *prev_class;
 
@@ -3053,21 +3054,21 @@ void rt_mutex_setprio(struct task_struct *p, int prio)
 		struct task_struct *pi_task = rt_mutex_get_top_task(p);
 		if (!dl_prio(p->normal_prio) ||
 		    (pi_task && dl_entity_preempt(&pi_task->dl, &p->dl))) {
-			p->dl.dl_boosted = 1;
-			p->dl.dl_throttled = 0;
+			p->dl.dl_boosted = true;
+			p->dl.dl_throttled = false;
 			enqueue_flag = ENQUEUE_REPLENISH;
 		} else
-			p->dl.dl_boosted = 0;
+			p->dl.dl_boosted = false;
 		p->sched_class = &dl_sched_class;
 	} else if (rt_prio(prio)) {
 		if (dl_prio(oldprio))
-			p->dl.dl_boosted = 0;
+			p->dl.dl_boosted = false;
 		if (oldprio < prio)
 			enqueue_flag = ENQUEUE_HEAD;
 		p->sched_class = &rt_sched_class;
 	} else {
 		if (dl_prio(oldprio))
-			p->dl.dl_boosted = 0;
+			p->dl.dl_boosted = false;
 		p->sched_class = &fair_sched_class;
 	}
 
@@ -3086,7 +3087,8 @@ out_unlock:
 
 void set_user_nice(struct task_struct *p, long nice)
 {
-	int old_prio, delta, queued;
+	int old_prio, delta;
+	bool queued;
 	unsigned long flags;
 	struct rq *rq;
 
@@ -3136,7 +3138,7 @@ EXPORT_SYMBOL(set_user_nice);
  * @p: task
  * @nice: nice value
  */
-int can_nice(const struct task_struct *p, const int nice)
+bool can_nice(const struct task_struct *p, const int nice)
 {
 	/* convert nice value [19,-20] to rlimit style value [1,40] */
 	int nice_rlim = nice_to_rlimit(nice);
@@ -3258,9 +3260,9 @@ __setparam_dl(struct task_struct *p, const struct sched_attr *attr)
 	dl_se->dl_period = attr->sched_period ?: dl_se->dl_deadline;
 	dl_se->flags = attr->sched_flags;
 	dl_se->dl_bw = to_ratio(dl_se->dl_period, dl_se->dl_runtime);
-	dl_se->dl_throttled = 0;
-	dl_se->dl_new = 1;
-	dl_se->dl_yielded = 0;
+	dl_se->dl_throttled = false;
+	dl_se->dl_new = true;
+	dl_se->dl_yielded = false;
 }
 
 /*
@@ -3389,12 +3391,13 @@ static int __sched_setscheduler(struct task_struct *p,
 {
 	int newprio = dl_policy(attr->sched_policy) ? MAX_DL_PRIO - 1 :
 		      MAX_RT_PRIO - 1 - attr->sched_priority;
-	int retval, oldprio, oldpolicy = -1, queued, running;
+	int retval, oldprio, oldpolicy = -1;
+	bool queued, running;
 	int policy = attr->sched_policy;
 	unsigned long flags;
 	const struct sched_class *prev_class;
 	struct rq *rq;
-	int reset_on_fork;
+	bool reset_on_fork;
 
 	/* may grab non-irq protected spin_locks */
 	BUG_ON(in_interrupt());
@@ -4230,7 +4233,7 @@ EXPORT_SYMBOL(_cond_resched);
  */
 int __cond_resched_lock(spinlock_t *lock)
 {
-	int resched = should_resched();
+	bool resched = should_resched();
 	int ret = 0;
 
 	lockdep_assert_held(lock);
@@ -5220,7 +5223,7 @@ static void set_rq_online(struct rq *rq)
 		const struct sched_class *class;
 
 		cpumask_set_cpu(rq->cpu, rq->rd->online);
-		rq->online = 1;
+		rq->online = true;
 
 		for_each_class(class) {
 			if (class->rq_online)
@@ -5240,7 +5243,7 @@ static void set_rq_offline(struct rq *rq)
 		}
 
 		cpumask_clear_cpu(rq->cpu, rq->rd->online);
-		rq->online = 0;
+		rq->online = false;
 	}
 }
 
@@ -6874,14 +6877,14 @@ static void detach_destroy_domains(const struct cpumask *cpu_map)
 }
 
 /* handle null as "default" */
-static int dattrs_equal(struct sched_domain_attr *cur, int idx_cur,
+static bool dattrs_equal(struct sched_domain_attr *cur, int idx_cur,
 			struct sched_domain_attr *new, int idx_new)
 {
 	struct sched_domain_attr tmp;
 
 	/* fast path */
 	if (!new && !cur)
-		return 1;
+		return true;
 
 	tmp = SD_ATTR_INIT;
 	return !memcmp(cur ? (cur + idx_cur) : &tmp,
@@ -7219,7 +7222,7 @@ void __init sched_init(void)
 		rq->next_balance = jiffies;
 		rq->push_cpu = 0;
 		rq->cpu = i;
-		rq->online = 0;
+		rq->online = false;
 		rq->idle_stamp = 0;
 		rq->avg_idle = 2*sysctl_sched_migration_cost;
 		rq->max_idle_balance_cost = sysctl_sched_migration_cost;
@@ -7767,13 +7770,13 @@ static int sched_rt_global_constraints(void)
 	return ret;
 }
 
-static int sched_rt_can_attach(struct task_group *tg, struct task_struct *tsk)
+static bool sched_rt_can_attach(struct task_group *tg, struct task_struct *tsk)
 {
 	/* Don't accept realtime tasks when there is no way for them to run */
 	if (rt_task(tsk) && tg->rt_bandwidth.rt_runtime == 0)
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
 #else /* !CONFIG_RT_GROUP_SCHED */
@@ -8058,7 +8061,8 @@ static int __cfs_schedulable(struct task_group *tg, u64 period, u64 runtime);
 
 static int tg_set_cfs_bandwidth(struct task_group *tg, u64 period, u64 quota)
 {
-	int i, ret = 0, runtime_enabled, runtime_was_enabled;
+	int i, ret = 0;
+	bool runtime_enabled, runtime_was_enabled;
 	struct cfs_bandwidth *cfs_b = &tg->cfs_bandwidth;
 
 	if (tg == &root_task_group)

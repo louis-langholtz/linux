@@ -287,7 +287,7 @@ static inline void setup_new_dl_entity(struct sched_dl_entity *dl_se,
 	 */
 	dl_se->deadline = rq_clock(rq) + pi_se->dl_deadline;
 	dl_se->runtime = pi_se->dl_runtime;
-	dl_se->dl_new = 0;
+	dl_se->dl_new = false;
 }
 
 /*
@@ -447,7 +447,7 @@ static void update_dl_entity(struct sched_dl_entity *dl_se,
  * actually started or not (i.e., the replenishment instant is in
  * the future or in the past).
  */
-static int start_dl_timer(struct sched_dl_entity *dl_se, bool boosted)
+static bool start_dl_timer(struct sched_dl_entity *dl_se, bool boosted)
 {
 	struct dl_rq *dl_rq = dl_rq_of_se(dl_se);
 	struct rq *rq = rq_of_dl_rq(dl_rq);
@@ -457,7 +457,7 @@ static int start_dl_timer(struct sched_dl_entity *dl_se, bool boosted)
 	s64 delta;
 
 	if (boosted)
-		return 0;
+		return false;
 	/*
 	 * We want the timer to fire at the deadline, but considering
 	 * that it is actually coming from rq->clock and not from
@@ -474,7 +474,7 @@ static int start_dl_timer(struct sched_dl_entity *dl_se, bool boosted)
 	 * start the timer in the past!
 	 */
 	if (ktime_us_delta(act, now) < 0)
-		return 0;
+		return false;
 
 	hrtimer_set_expires(&dl_se->dl_timer, act);
 
@@ -536,8 +536,8 @@ again:
 
 	sched_clock_tick();
 	update_rq_clock(rq);
-	dl_se->dl_throttled = 0;
-	dl_se->dl_yielded = 0;
+	dl_se->dl_throttled = false;
+	dl_se->dl_yielded = false;
 	if (task_on_rq_queued(p)) {
 		enqueue_task_dl(rq, p, ENQUEUE_REPLENISH);
 		if (dl_task(rq->curr))
@@ -615,7 +615,7 @@ static void update_curr_dl(struct rq *rq)
 	if (dl_runtime_exceeded(rq, dl_se)) {
 		__dequeue_task_dl(rq, curr, 0);
 		if (likely(start_dl_timer(dl_se, curr->dl.dl_boosted)))
-			dl_se->dl_throttled = 1;
+			dl_se->dl_throttled = true;
 		else
 			enqueue_task_dl(rq, curr, ENQUEUE_REPLENISH);
 
@@ -895,7 +895,7 @@ static void yield_task_dl(struct rq *rq)
 	 * new scheduling parameters (thanks to dl_yielded=1).
 	 */
 	if (p->dl.runtime > 0) {
-		rq->curr->dl.dl_yielded = 1;
+		rq->curr->dl.dl_yielded = true;
 		p->dl.runtime = 0;
 	}
 	update_curr_dl(rq);
