@@ -402,7 +402,7 @@ static enum hrtimer_restart hrtick(struct hrtimer *timer)
 
 	raw_spin_lock(&rq->lock);
 	update_rq_clock(rq);
-	rq->curr->sched_class->task_tick(rq, rq->curr, 1);
+	rq->curr->sched_class->task_tick(rq, rq->curr, true);
 	raw_spin_unlock(&rq->lock);
 
 	return HRTIMER_NORESTART;
@@ -427,7 +427,7 @@ static void __hrtick_start(void *arg)
 
 	raw_spin_lock(&rq->lock);
 	__hrtick_restart(rq);
-	rq->hrtick_csd_pending = 0;
+	rq->hrtick_csd_pending = false;
 	raw_spin_unlock(&rq->lock);
 }
 
@@ -455,7 +455,7 @@ void hrtick_start(struct rq *rq, u64 delay)
 		__hrtick_restart(rq);
 	} else if (!rq->hrtick_csd_pending) {
 		smp_call_function_single_async(cpu_of(rq), &rq->hrtick_csd);
-		rq->hrtick_csd_pending = 1;
+		rq->hrtick_csd_pending = true;
 	}
 }
 
@@ -502,7 +502,7 @@ static inline void init_hrtick(void)
 static void init_rq_hrtick(struct rq *rq)
 {
 #ifdef CONFIG_SMP
-	rq->hrtick_csd_pending = 0;
+	rq->hrtick_csd_pending = false;
 
 	rq->hrtick_csd.flags = 0;
 	rq->hrtick_csd.func = __hrtick_start;
@@ -2286,7 +2286,7 @@ static inline void post_schedule(struct rq *rq)
 			rq->curr->sched_class->post_schedule(rq);
 		raw_spin_unlock_irqrestore(&rq->lock, flags);
 
-		rq->post_schedule = 0;
+		rq->post_schedule = false;
 	}
 }
 
@@ -2519,7 +2519,7 @@ void scheduler_tick(void)
 
 	raw_spin_lock(&rq->lock);
 	update_rq_clock(rq);
-	curr->sched_class->task_tick(rq, curr, 0);
+	curr->sched_class->task_tick(rq, curr, false);
 	update_cpu_load_active(rq);
 	raw_spin_unlock(&rq->lock);
 
@@ -7217,8 +7217,8 @@ void __init sched_init(void)
 		rq->sd = NULL;
 		rq->rd = NULL;
 		rq->cpu_capacity = SCHED_CAPACITY_SCALE;
-		rq->post_schedule = 0;
-		rq->active_balance = 0;
+		rq->post_schedule = false;
+		rq->active_balance = false;
 		rq->next_balance = jiffies;
 		rq->push_cpu = 0;
 		rq->cpu = i;

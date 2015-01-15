@@ -31,9 +31,9 @@ static inline int right_child(int i)
 	return (i << 1) + 2;
 }
 
-static inline int dl_time_before(u64 a, u64 b)
+static inline bool dl_time_before(u64 a, u64 b)
 {
-	return (s64)(a - b) < 0;
+	return a < b;
 }
 
 static void cpudl_exchange(struct cpudl *cp, int a, int b)
@@ -51,7 +51,7 @@ static void cpudl_heapify(struct cpudl *cp, int idx)
 	int l, r, largest;
 
 	/* adapted from lib/prio_heap.c */
-	while(1) {
+	while (true) {
 		l = left_child(idx);
 		r = right_child(idx);
 		largest = idx;

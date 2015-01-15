@@ -78,7 +78,7 @@ void init_dl_rq(struct dl_rq *dl_rq, struct rq *rq)
 	dl_rq->earliest_dl.curr = dl_rq->earliest_dl.next = 0;
 
 	dl_rq->dl_nr_migratory = 0;
-	dl_rq->overloaded = 0;
+	dl_rq->overloaded = false;
 	dl_rq->pushable_dl_tasks_root = RB_ROOT;
 #else
 	init_dl_bw(&dl_rq->dl_bw);
@@ -122,11 +122,11 @@ static void update_dl_migration(struct dl_rq *dl_rq)
 	if (dl_rq->dl_nr_migratory && dl_rq->dl_nr_running > 1) {
 		if (!dl_rq->overloaded) {
 			dl_set_overload(rq_of_dl_rq(dl_rq));
-			dl_rq->overloaded = 1;
+			dl_rq->overloaded = true;
 		}
 	} else if (dl_rq->overloaded) {
 		dl_clear_overload(rq_of_dl_rq(dl_rq));
-		dl_rq->overloaded = 0;
+		dl_rq->overloaded = false;
 	}
 }
 
@@ -1069,7 +1069,7 @@ static void put_prev_task_dl(struct rq *rq, struct task_struct *p)
 		enqueue_pushable_dl_task(rq, p);
 }
 
-static void task_tick_dl(struct rq *rq, struct task_struct *p, int queued)
+static void task_tick_dl(struct rq *rq, struct task_struct *p, bool queued)
 {
 	update_curr_dl(rq);
 
