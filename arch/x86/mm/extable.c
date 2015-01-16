@@ -110,11 +110,14 @@ static int cmp_ex(const void *a, const void *b)
 {
 	const struct exception_table_entry *x = a, *y = b;
 
-	if (x->insn < y->insn)
-		return -1;
-	if (x->insn > y->insn)
-		return 1;
-	return 0;
+	/*
+	 * This value will always end up fittin in an int, because on
+	 * both i386 and x86-64 the kernel symbol-reachable address
+	 * space is < 2 GiB.
+	 *
+	 * This compare is only valid after normalization.
+	 */
+	return x->insn - y->insn;
 }
 
 void sort_extable(struct exception_table_entry *start,
