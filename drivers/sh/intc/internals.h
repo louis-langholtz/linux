@@ -115,7 +115,11 @@ static inline int intc_handle_int_cmp(const void *a, const void *b)
 	const struct intc_handle_int *_a = a;
 	const struct intc_handle_int *_b = b;
 
-	return _a->irq - _b->irq;
+	if (_a->irq < _b->irq)
+		return -1;
+	if (_a->irq > _b->irq)
+		return 1;
+	return 0;
 }
 
 /* access.c */

@@ -268,7 +268,11 @@ static int acpi_fan_speed_cmp(const void *a, const void *b)
 {
 	const struct acpi_fan_fps *fps1 = a;
 	const struct acpi_fan_fps *fps2 = b;
-	return fps1->speed - fps2->speed;
+	if (fps1->speed < fps2->speed)
+		return -1;
+	if (fps1->speed > fps2->speed)
+		return 1;
+	return 0;
 }
 
 static int acpi_fan_get_fps(struct acpi_device *device)

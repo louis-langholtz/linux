@@ -4317,7 +4317,11 @@ static int compare_attr(const void *ap, const void *bp)
 {
 	const struct automic_entry *a = ap;
 	const struct automic_entry *b = bp;
-	return (int)(a->attr - b->attr);
+	if (a->attr < b->attr)
+		return -1;
+	if (a->attr > b->attr)
+		return 1;
+	return 0;
 }
 
 /*

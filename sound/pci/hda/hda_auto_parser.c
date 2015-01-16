@@ -73,12 +73,21 @@ static int compare_input_type(const void *ap, const void *bp)
 {
 	const struct auto_pin_cfg_item *a = ap;
 	const struct auto_pin_cfg_item *b = bp;
-	if (a->type != b->type)
-		return (int)(a->type - b->type);
+	if (a->type != b->type) {
+		if (a->type < b->type)
+			return -1;
+		if (a->type > b->type)
+			return 1;
+		return 0;
+	}
 
 	/* In case one has boost and the other one has not,
 	   pick the one with boost first. */
-	return (int)(b->has_boost_on_pin - a->has_boost_on_pin);
+	if (b->has_boost_on_pin < a->has_boost_on_pin)
+		return -1;
+	if (b->has_boost_on_pin > a->has_boost_on_pin)
+		return 1;
+	return 0;
 }
 
 /* Reorder the surround channels
