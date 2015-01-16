@@ -610,11 +610,12 @@ bool sched_rt_bandwidth_account(struct rt_rq *rt_rq)
 /*
  * We ran out of runtime, see if we can borrow some from our neighbours.
  */
-static int do_balance_runtime(struct rt_rq *rt_rq)
+static bool do_balance_runtime(struct rt_rq *rt_rq)
 {
 	struct rt_bandwidth *rt_b = sched_rt_bandwidth(rt_rq);
 	struct root_domain *rd = rq_of_rt_rq(rt_rq)->rd;
-	int i, weight, more = 0;
+	int i, weight;
+	bool more = false;
 	u64 rt_period;
 
 	weight = cpumask_weight(rd->span);
@@ -648,7 +649,7 @@ static int do_balance_runtime(struct rt_rq *rt_rq)
 				diff = rt_period - rt_rq->rt_runtime;
 			iter->rt_runtime -= diff;
 			rt_rq->rt_runtime += diff;
-			more = 1;
+			more = true;
 			if (rt_rq->rt_runtime == rt_period) {
 				raw_spin_unlock(&iter->rt_runtime_lock);
 				break;
@@ -771,9 +772,9 @@ static void __enable_runtime(struct rq *rq)
 	}
 }
 
-static int balance_runtime(struct rt_rq *rt_rq)
+static bool balance_runtime(struct rt_rq *rt_rq)
 {
-	int more = 0;
+	bool more = false;
 
 	if (!sched_feat(RT_RUNTIME_SHARE))
 		return more;
@@ -787,9 +788,9 @@ static int balance_runtime(struct rt_rq *rt_rq)
 	return more;
 }
 #else /* !CONFIG_SMP */
-static inline int balance_runtime(struct rt_rq *rt_rq)
+static inline bool balance_runtime(struct rt_rq *rt_rq)
 {
-	return 0;
+	return false;
 }
 #endif /* CONFIG_SMP */
 
@@ -1496,12 +1497,12 @@ static void put_prev_task_rt(struct rq *rq, struct task_struct *p)
 /* Only try algorithms three times */
 #define RT_MAX_TRIES 3
 
-static int pick_rt_task(struct rq *rq, struct task_struct *p, int cpu)
+static bool pick_rt_task(struct rq *rq, struct task_struct *p, int cpu)
 {
 	if (!task_running(rq, p) &&
 	    cpumask_test_cpu(cpu, tsk_cpus_allowed(p)))
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
 /*
@@ -1672,23 +1673,23 @@ static struct task_struct *pick_next_pushable_task(struct rq *rq)
  * running task can migrate over to a CPU that is running a task
  * of lesser priority.
  */
-static int push_rt_task(struct rq *rq)
+static bool push_rt_task(struct rq *rq)
 {
 	struct task_struct *next_task;
 	struct rq *lowest_rq;
-	int ret = 0;
+	int ret = false;
 
 	if (!rq->rt.overloaded)
-		return 0;
+		return false;
 
 	next_task = pick_next_pushable_task(rq);
 	if (!next_task)
-		return 0;
+		return false;
 
 retry:
 	if (unlikely(next_task == rq->curr)) {
 		WARN_ON(1);
-		return 0;
+		return false;
 	}
 
 	/*
@@ -1698,7 +1699,7 @@ retry:
 	 */
 	if (unlikely(next_task->prio < rq->curr->prio)) {
 		resched_curr(rq);
-		return 0;
+		return false;
 	}
 
 	/* We might release rq lock */
@@ -1742,7 +1743,7 @@ retry:
 	deactivate_task(rq, next_task, 0);
 	set_task_cpu(next_task, lowest_rq->cpu);
 	activate_task(lowest_rq, next_task, 0);
-	ret = 1;
+	ret = true;
 
 	resched_curr(lowest_rq);
 
@@ -1965,7 +1966,7 @@ void __init init_sched_rt_class(void)
  */
 static void switched_to_rt(struct rq *rq, struct task_struct *p)
 {
-	int check_resched = 1;
+	bool check_resched = true;
 
 	/*
 	 * If we are already running, then there's nothing
@@ -1979,7 +1980,7 @@ static void switched_to_rt(struct rq *rq, struct task_struct *p)
 		if (p->nr_cpus_allowed > 1 && rq->rt.overloaded &&
 		    /* Don't resched if we changed runqueues */
 		    push_rt_task(rq) && rq != task_rq(p))
-			check_resched = 0;
+			check_resched = false;
 #endif /* CONFIG_SMP */
 		if (check_resched && p->prio < rq->curr->prio)
 			resched_curr(rq);
