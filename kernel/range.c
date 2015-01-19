@@ -113,14 +113,10 @@ static int cmp_range(const void *x1, const void *x2)
 {
 	const struct range *r1 = x1;
 	const struct range *r2 = x2;
-	u64 start1, start2;
 
-	start1 = r1->start;
-	start2 = r2->start;
-
-	if (start1 < start2)
+	if (r1->start < r2->start)
 		return -1;
-	if (start1 > start2)
+	if (r1->start > r2->start)
 		return 1;
 	return 0;
 }
