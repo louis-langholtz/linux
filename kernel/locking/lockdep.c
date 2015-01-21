@@ -4121,7 +4121,7 @@ void debug_show_all_locks(void)
 {
 	struct task_struct *g, *p;
 	int count = 10;
-	int unlock = 1;
+	bool unlock = true;
 
 	if (unlikely(!debug_locks)) {
 		printk("INFO: lockdep is turned off.\n");
@@ -4146,7 +4146,7 @@ retry:
 			goto retry;
 		}
 		printk(" ignoring it.\n");
-		unlock = 0;
+		unlock = false;
 	} else {
 		if (count != 10)
 			printk(KERN_CONT " locked it.\n");
@@ -4164,7 +4164,7 @@ retry:
 			lockdep_print_held_locks(p);
 		if (!unlock)
 			if (read_trylock(&tasklist_lock))
-				unlock = 1;
+				unlock = true;
 	} while_each_thread(g, p);
 
 	printk("\n");

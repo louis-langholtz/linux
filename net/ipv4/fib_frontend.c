@@ -793,7 +793,7 @@ void fib_del_ifaddr(struct in_ifaddr *ifa, struct in_ifaddr *iprim)
 #define BRD1_OK		8
 	unsigned int ok = 0;
 	int subnet = 0;		/* Primary network */
-	int gone = 1;		/* Address is missing */
+	bool gone = true;		/* Address is missing */
 	int same_prefsrc = 0;	/* Another primary with same IP */
 
 	if (ifa->ifa_flags & IFA_F_SECONDARY) {
@@ -823,7 +823,7 @@ void fib_del_ifaddr(struct in_ifaddr *ifa, struct in_ifaddr *iprim)
 	for (ifa1 = in_dev->ifa_list; ifa1; ifa1 = ifa1->ifa_next) {
 		if (ifa1 == ifa) {
 			/* promotion, keep the IP */
-			gone = 0;
+			gone = false;
 			continue;
 		}
 		/* Ignore IFAs from our subnet */

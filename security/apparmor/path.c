@@ -58,7 +58,7 @@ static int d_namespace_path(struct path *path, char *buf, int buflen,
 {
 	char *res;
 	int error = 0;
-	int connected = 1;
+	bool connected = true;
 
 	if (path->mnt->mnt_flags & MNT_INTERNAL) {
 		/* it's not mounted anywhere */
@@ -87,7 +87,7 @@ static int d_namespace_path(struct path *path, char *buf, int buflen,
 	} else {
 		res = d_absolute_path(path, buf, buflen);
 		if (!our_mnt(path->mnt))
-			connected = 0;
+			connected = false;
 	}
 
 	/* handle error conditions - and still allow a partial path to
@@ -96,7 +96,7 @@ static int d_namespace_path(struct path *path, char *buf, int buflen,
 	if (!res || IS_ERR(res)) {
 		if (PTR_ERR(res) == -ENAMETOOLONG)
 			return -ENAMETOOLONG;
-		connected = 0;
+		connected = false;
 		res = dentry_path_raw(path->dentry, buf, buflen);
 		if (IS_ERR(res)) {
 			error = PTR_ERR(res);
@@ -104,7 +104,7 @@ static int d_namespace_path(struct path *path, char *buf, int buflen,
 			goto out;
 		};
 	} else if (!our_mnt(path->mnt))
-		connected = 0;
+		connected = false;
 
 	*name = res;
 

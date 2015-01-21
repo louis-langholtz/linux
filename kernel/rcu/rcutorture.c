@@ -776,7 +776,7 @@ static void rcu_torture_cbflood_cb(struct rcu_head *rhp)
 static int
 rcu_torture_cbflood(void *arg)
 {
-	int err = 1;
+	bool err = true;
 	int i;
 	int j;
 	struct rcu_head *rhp;

@@ -285,18 +285,18 @@ static const struct file_operations irq_spurious_proc_fops = {
 
 #define MAX_NAMELEN 128
 
-static int name_unique(unsigned int irq, struct irqaction *new_action)
+static bool name_unique(unsigned int irq, struct irqaction *new_action)
 {
 	struct irq_desc *desc = irq_to_desc(irq);
 	struct irqaction *action;
 	unsigned long flags;
-	int ret = 1;
+	bool ret = true;
 
 	raw_spin_lock_irqsave(&desc->lock, flags);
 	for (action = desc->action ; action; action = action->next) {
 		if ((action != new_action) && action->name &&
 				!strcmp(new_action->name, action->name)) {
-			ret = 0;
+			ret = false;
 			break;
 		}
 	}

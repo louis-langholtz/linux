@@ -3065,7 +3065,7 @@ static void pktgen_stop_all_threads_ifs(struct pktgen_net *pn)
 	mutex_unlock(&pktgen_thread_lock);
 }
 
-static int thread_is_running(const struct pktgen_thread *t)
+static bool thread_is_running(const struct pktgen_thread *t)
 {
 	const struct pktgen_dev *pkt_dev;
 
@@ -3073,13 +3073,13 @@ static int thread_is_running(const struct pktgen_thread *t)
 	list_for_each_entry_rcu(pkt_dev, &t->if_list, list)
 		if (pkt_dev->running) {
 			rcu_read_unlock();
-			return 1;
+			return true;
 		}
 	rcu_read_unlock();
-	return 0;
+	return false;
 }
 
-static int pktgen_wait_thread_run(struct pktgen_thread *t)
+static bool pktgen_wait_thread_run(struct pktgen_thread *t)
 {
 	while (thread_is_running(t)) {
 
@@ -3088,25 +3088,25 @@ static int pktgen_wait_thread_run(struct pktgen_thread *t)
 		if (signal_pending(current))
 			goto signal;
 	}
-	return 1;
+	return true;
 signal:
-	return 0;
+	return false;
 }
 
-static int pktgen_wait_all_threads_run(struct pktgen_net *pn)
+static bool pktgen_wait_all_threads_run(struct pktgen_net *pn)
 {
 	struct pktgen_thread *t;
-	int sig = 1;
+	bool sig = true;
 
 	mutex_lock(&pktgen_thread_lock);
 
 	list_for_each_entry(t, &pn->pktgen_threads, th_list) {
 		sig = pktgen_wait_thread_run(t);
-		if (sig == 0)
+		if (!sig)
 			break;
 	}
 
-	if (sig == 0)
+	if (!sig)
 		list_for_each_entry(t, &pn->pktgen_threads, th_list)
 			t->control |= (T_STOP);
 
