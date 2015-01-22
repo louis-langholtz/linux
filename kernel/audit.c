@@ -85,7 +85,7 @@ u32		audit_ever_enabled;
 EXPORT_SYMBOL_GPL(audit_enabled);
 
 /* Default state when kernel boots without any parameters. */
-static u32	audit_default;
+static bool	audit_default;
 
 /* If auditing cannot proceed, audit_failure selects what happens. */
 static u32	audit_failure = AUDIT_FAIL_PRINTK;
@@ -254,7 +254,7 @@ void audit_log_lost(const char *message)
 	static DEFINE_SPINLOCK(lock);
 	unsigned long		flags;
 	unsigned long		now;
-	int			print;
+	bool			print;
 
 	atomic_inc(&audit_lost);
 
@@ -264,7 +264,7 @@ void audit_log_lost(const char *message)
 		spin_lock_irqsave(&lock, flags);
 		now = jiffies;
 		if (now - last_msg > HZ) {
-			print = 1;
+			print = true;
 			last_msg = now;
 		}
 		spin_unlock_irqrestore(&lock, flags);
@@ -281,7 +281,7 @@ void audit_log_lost(const char *message)
 }
 
 static int audit_log_config_change(char *function_name, u32 new, u32 old,
-				   int allow_changes)
+				   bool allow_changes)
 {
 	struct audit_buffer *ab;
 	int rc = 0;
@@ -293,7 +293,7 @@ static int audit_log_config_change(char *function_name, u32 new, u32 old,
 	audit_log_session_info(ab);
 	rc = audit_log_task_context(ab);
 	if (rc)
-		allow_changes = 0; /* Something weird, deny request */
+		allow_changes = false; /* Something weird, deny request */
 	audit_log_format(ab, " res=%d", allow_changes);
 	audit_log_end(ab);
 	return rc;
@@ -301,23 +301,24 @@ static int audit_log_config_change(char *function_name, u32 new, u32 old,
 
 static int audit_do_config_change(char *function_name, u32 *to_change, u32 new)
 {
-	int allow_changes, rc = 0;
+	bool allow_changes;
+	int rc = 0;
 	u32 old = *to_change;
 
 	/* check if we are locked */
 	if (audit_enabled == AUDIT_LOCKED)
-		allow_changes = 0;
+		allow_changes = false;
 	else
-		allow_changes = 1;
+		allow_changes = true;
 
 	if (audit_enabled != AUDIT_OFF) {
 		rc = audit_log_config_change(function_name, new, old, allow_changes);
 		if (rc)
-			allow_changes = 0;
+			allow_changes = false;
 	}
 
 	/* If we are allowed, make the change */
-	if (allow_changes == 1)
+	if (allow_changes)
 		*to_change = new;
 	/* Not allowed, update reason */
 	else if (rc == 0)
@@ -370,7 +371,7 @@ static int audit_set_failure(u32 state)
  * it is not a huge concern since we already passed the audit_log_lost()
  * notification and stuff.  This is just nice to get audit messages during
  * boot before auditd is running or messages generated while auditd is stopped.
- * This only holds messages is audit_default is set, aka booting with audit=1
+ * This only holds messages if audit_default is set, aka booting with audit=1
  * or building your kernel that way.
  */
 static void audit_hold_skb(struct sk_buff *skb)
@@ -539,8 +540,8 @@ int audit_send_list(void *_dest)
 	return 0;
 }
 
-struct sk_buff *audit_make_reply(__u32 portid, int seq, int type, int done,
-				 int multi, const void *payload, int size)
+struct sk_buff *audit_make_reply(__u32 portid, int seq, int type, bool done,
+				 bool multi, const void *payload, int size)
 {
 	struct sk_buff	*skb;
 	struct nlmsghdr	*nlh;
@@ -593,8 +594,8 @@ static int audit_send_reply_thread(void *arg)
  * Allocates an skb, builds the netlink message, and sends it to the port id.
  * No failure notifications.
  */
-static void audit_send_reply(struct sk_buff *request_skb, int seq, int type, int done,
-			     int multi, const void *payload, int size)
+static void audit_send_reply(struct sk_buff *request_skb, int seq, int type, bool done,
+			     bool multi, const void *payload, int size)
 {
 	u32 portid = NETLINK_CB(request_skb).portid;
 	struct net *net = sock_net(NETLINK_CB(request_skb).sk);
@@ -703,9 +704,9 @@ static int audit_log_common_recv_msg(struct audit_buffer **ab, u16 msg_type)
 	return rc;
 }
 
-int is_audit_feature_set(int i)
+bool is_audit_feature_set(int i)
 {
-	return af.features & AUDIT_FEATURE_TO_MASK(i);
+	return !!(af.features & AUDIT_FEATURE_TO_MASK(i));
 }
 
 
@@ -715,7 +716,7 @@ static int audit_get_feature(struct sk_buff *skb)
 
 	seq = nlmsg_hdr(skb)->nlmsg_seq;
 
-	audit_send_reply(skb, seq, AUDIT_GET_FEATURE, 0, 0, &af, sizeof(af));
+	audit_send_reply(skb, seq, AUDIT_GET_FEATURE, false, false, &af, sizeof(af));
 
 	return 0;
 }
@@ -835,7 +836,7 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 		s.backlog		= skb_queue_len(&audit_skb_queue);
 		s.feature_bitmap	= AUDIT_FEATURE_BITMAP_ALL;
 		s.backlog_wait_time	= audit_backlog_wait_time;
-		audit_send_reply(skb, seq, AUDIT_GET, 0, 0, &s, sizeof(s));
+		audit_send_reply(skb, seq, AUDIT_GET, false, false, &s, sizeof(s));
 		break;
 	}
 	case AUDIT_SET: {
@@ -1165,7 +1166,7 @@ static int __init audit_init(void)
 	skb_queue_head_init(&audit_skb_hold_queue);
 	audit_initialized = AUDIT_INITIALIZED;
 	audit_enabled = audit_default;
-	audit_ever_enabled |= !!audit_default;
+	audit_ever_enabled |= audit_default;
 
 	audit_log(NULL, GFP_KERNEL, AUDIT_KERNEL, "initialized");
 
@@ -1564,14 +1565,14 @@ void audit_log_n_string(struct audit_buffer *ab, const char *string,
  * @string: string to be checked
  * @len: max length of the string to check
  */
-int audit_string_contains_control(const char *string, size_t len)
+bool audit_string_contains_control(const char *string, size_t len)
 {
 	const unsigned char *p;
 	for (p = string; p < (const unsigned char *)string + len; p++) {
 		if (*p == '"' || *p < 0x21 || *p > 0x7e)
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 /**

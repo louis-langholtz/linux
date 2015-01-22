@@ -82,7 +82,7 @@ struct audit_field {
 	u32				op;
 };
 
-extern int is_audit_feature_set(int which);
+extern bool is_audit_feature_set(int which);
 
 extern int __init audit_register_class(int class, unsigned *list);
 extern int audit_classify_syscall(int abi, unsigned syscall);
@@ -457,7 +457,7 @@ extern struct audit_buffer *audit_log_start(struct audit_context *ctx, gfp_t gfp
 extern __printf(2, 3)
 void audit_log_format(struct audit_buffer *ab, const char *fmt, ...);
 extern void		    audit_log_end(struct audit_buffer *ab);
-extern int		    audit_string_contains_control(const char *string,
+extern bool		    audit_string_contains_control(const char *string,
 							  size_t len);
 extern void		    audit_log_n_hex(struct audit_buffer *ab,
 					  const unsigned char *buf,

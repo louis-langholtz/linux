@@ -1386,7 +1386,7 @@ int kdb_main_loop(kdb_reason_t reason, kdb_reason_t reason2, int error,
 {
 	int result = 1;
 	/* Stay in kdb() until 'go', 'ss[b]' or an error */
-	while (1) {
+	while (true) {
 		/*
 		 * All processors except the one that is in control
 		 * will spin here.

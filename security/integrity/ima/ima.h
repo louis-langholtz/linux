@@ -94,7 +94,7 @@ extern struct list_head ima_measurements;	/* list of all measurements */
 /* Internal IMA function definitions */
 int ima_init(void);
 int ima_fs_init(void);
-int ima_add_template_entry(struct ima_template_entry *entry, int violation,
+int ima_add_template_entry(struct ima_template_entry *entry, bool violation,
 			   const char *op, struct inode *inode,
 			   const unsigned char *filename);
 int ima_calc_file_hash(struct file *file, struct ima_digest_data *hash);
@@ -144,7 +144,7 @@ int ima_alloc_init_template(struct integrity_iint_cache *iint,
 			    struct file *file, const unsigned char *filename,
 			    struct evm_ima_xattr_data *xattr_value,
 			    int xattr_len, struct ima_template_entry **entry);
-int ima_store_template(struct ima_template_entry *entry, int violation,
+int ima_store_template(struct ima_template_entry *entry, bool violation,
 		       struct inode *inode, const unsigned char *filename);
 void ima_free_template_entry(struct ima_template_entry *entry);
 const char *ima_d_path(struct path *path, char **pathbuf);

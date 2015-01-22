@@ -1013,14 +1013,14 @@ static void audit_list_rules(__u32 portid, int seq, struct sk_buff_head *q)
 			if (unlikely(!data))
 				break;
 			skb = audit_make_reply(portid, seq, AUDIT_LIST_RULES,
-					       0, 1, data,
+					       false, true, data,
 					       sizeof(*data) + data->buflen);
 			if (skb)
 				skb_queue_tail(q, skb);
 			kfree(data);
 		}
 	}
-	skb = audit_make_reply(portid, seq, AUDIT_LIST_RULES, 1, 1, NULL, 0);
+	skb = audit_make_reply(portid, seq, AUDIT_LIST_RULES, true, true, NULL, 0);
 	if (skb)
 		skb_queue_tail(q, skb);
 }

@@ -105,7 +105,7 @@ static int ima_pcr_extend(const u8 *hash)
 /* Add template entry to the measurement list and hash table,
  * and extend the pcr.
  */
-int ima_add_template_entry(struct ima_template_entry *entry, int violation,
+int ima_add_template_entry(struct ima_template_entry *entry, bool violation,
 			   const char *op, struct inode *inode,
 			   const unsigned char *filename)
 {
