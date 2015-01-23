@@ -38,11 +38,11 @@ bootmem_data_t bootmem_node_data[MAX_NUMNODES] __initdata;
 
 static struct list_head bdata_list __initdata = LIST_HEAD_INIT(bdata_list);
 
-static int bootmem_debug;
+static bool bootmem_debug;
 
 static int __init bootmem_debug_setup(char *buf)
 {
-	bootmem_debug = 1;
+	bootmem_debug = true;
 	return 0;
 }
 early_param("bootmem_debug", bootmem_debug_setup);
@@ -241,7 +241,7 @@ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
 	return count;
 }
 
-static int reset_managed_pages_done __initdata;
+static bool reset_managed_pages_done __initdata;
 
 void reset_node_managed_pages(pg_data_t *pgdat)
 {
@@ -261,7 +261,7 @@ void __init reset_all_zones_managed_pages(void)
 	for_each_online_pgdat(pgdat)
 		reset_node_managed_pages(pgdat);
 
-	reset_managed_pages_done = 1;
+	reset_managed_pages_done = true;
 }
 
 /**

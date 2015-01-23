@@ -1438,7 +1438,7 @@ int try_to_unuse(unsigned int type, bool frontswap,
 			retval = unuse_mm(start_mm, entry, page);
 
 		if (swap_count(*swap_map)) {
-			int set_start_mm = (*swap_map >= swcount);
+			bool set_start_mm = (*swap_map >= swcount);
 			struct list_head *p = &start_mm->mmlist;
 			struct mm_struct *new_start_mm = start_mm;
 			struct mm_struct *prev_mm = start_mm;
@@ -1462,7 +1462,7 @@ int try_to_unuse(unsigned int type, bool frontswap,
 				if (!swap_count(swcount)) /* any usage ? */
 					;
 				else if (mm == &init_mm)
-					set_start_mm = 1;
+					set_start_mm = true;
 				else
 					retval = unuse_mm(mm, entry, page);
 
@@ -1470,7 +1470,7 @@ int try_to_unuse(unsigned int type, bool frontswap,
 					mmput(new_start_mm);
 					atomic_inc(&mm->mm_users);
 					new_start_mm = mm;
-					set_start_mm = 0;
+					set_start_mm = false;
 				}
 				spin_lock(&mmlist_lock);
 			}

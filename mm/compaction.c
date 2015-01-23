@@ -1351,8 +1351,8 @@ unsigned long try_to_compact_pages(struct zonelist *zonelist,
 			int alloc_flags, int classzone_idx)
 {
 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
-	int may_enter_fs = gfp_mask & __GFP_FS;
-	int may_perform_io = gfp_mask & __GFP_IO;
+	bool may_enter_fs = !!(gfp_mask & __GFP_FS);
+	bool may_perform_io = !!(gfp_mask & __GFP_IO);
 	struct zoneref *z;
 	struct zone *zone;
 	int rc = COMPACT_DEFERRED;
