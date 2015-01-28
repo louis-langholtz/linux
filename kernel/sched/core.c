@@ -199,10 +199,10 @@ static void sched_feat_enable(int i) { };
 static int sched_feat_set(char *cmp)
 {
 	int i;
-	int neg = 0;
+	bool neg = false;
 
 	if (strncmp(cmp, "NO_", 3) == 0) {
-		neg = 1;
+		neg = true;
 		cmp += 3;
 	}
 

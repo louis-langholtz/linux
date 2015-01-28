@@ -1811,7 +1811,7 @@ check_deadlock(struct task_struct *curr, struct held_lock *next,
  */
 static int
 check_prev_add(struct task_struct *curr, struct held_lock *prev,
-	       struct held_lock *next, int distance, int trylock_loop)
+	       struct held_lock *next, int distance, bool trylock_loop)
 {
 	struct lock_list *entry;
 	int ret;
@@ -1918,7 +1918,7 @@ static int
 check_prevs_add(struct task_struct *curr, struct held_lock *next)
 {
 	int depth = curr->lockdep_depth;
-	int trylock_loop = 0;
+	bool trylock_loop = false;
 	struct held_lock *hlock;
 
 	/*
@@ -1968,7 +1968,7 @@ check_prevs_add(struct task_struct *curr, struct held_lock *next)
 		if (curr->held_locks[depth].irq_context !=
 				curr->held_locks[depth-1].irq_context)
 			break;
-		trylock_loop = 1;
+		trylock_loop = true;
 	}
 	return 1;
 out_bug:
@@ -2088,7 +2088,7 @@ cache_hit:
 }
 
 static int validate_chain(struct task_struct *curr, struct lockdep_map *lock,
-		struct held_lock *hlock, int chain_head, u64 chain_key)
+		struct held_lock *hlock, bool chain_head, u64 chain_key)
 {
 	/*
 	 * Trylock needs to maintain the stack of held locks, but it
@@ -2143,7 +2143,7 @@ static int validate_chain(struct task_struct *curr, struct lockdep_map *lock,
 #else
 static inline int validate_chain(struct task_struct *curr,
 	       	struct lockdep_map *lock, struct held_lock *hlock,
-		int chain_head, u64 chain_key)
+		bool chain_head, u64 chain_key)
 {
 	return 1;
 }
@@ -3053,7 +3053,7 @@ static int __lock_acquire(struct lockdep_map *lock, unsigned int subclass,
 	struct lock_class *class = NULL;
 	struct held_lock *hlock;
 	unsigned int depth, id;
-	int chain_head = 0;
+	bool chain_head = false;
 	int class_idx;
 	u64 chain_key;
 
@@ -3168,13 +3168,13 @@ static int __lock_acquire(struct lockdep_map *lock, unsigned int subclass,
 		 */
 		if (DEBUG_LOCKS_WARN_ON(chain_key != 0))
 			return 0;
-		chain_head = 1;
+		chain_head = true;
 	}
 
 	hlock->prev_chain_key = chain_key;
 	if (separate_irq_context(curr, hlock)) {
 		chain_key = 0;
-		chain_head = 1;
+		chain_head = true;
 	}
 	chain_key = iterate_chain_key(chain_key, id);
 

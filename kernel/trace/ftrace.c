@@ -1601,7 +1601,7 @@ static void __ftrace_hash_rec_update(struct ftrace_ops *ops,
 	struct ftrace_page *pg;
 	struct dyn_ftrace *rec;
 	int count = 0;
-	int all = 0;
+	bool all = false;
 
 	/* Only update if the ops has been registered */
 	if (!(ops->flags & FTRACE_OPS_FL_ENABLED))
@@ -1622,7 +1622,7 @@ static void __ftrace_hash_rec_update(struct ftrace_ops *ops,
 		hash = ops->func_hash->filter_hash;
 		other_hash = ops->func_hash->notrace_hash;
 		if (ftrace_hash_empty(hash))
-			all = 1;
+			all = true;
 	} else {
 		inc = !inc;
 		hash = ops->func_hash->notrace_hash;
@@ -3482,7 +3482,7 @@ ftrace_match_records(struct ftrace_hash *hash, char *buff, int len)
 static int
 ftrace_match_module_records(struct ftrace_hash *hash, char *buff, char *mod)
 {
-	int not = 0;
+	bool not = false;
 
 	/* blank or '*' mean the same */
 	if (strcmp(buff, "*") == 0)
@@ -3491,7 +3491,7 @@ ftrace_match_module_records(struct ftrace_hash *hash, char *buff, char *mod)
 	/* handle the case of 'dont filter this module' */
 	if (strcmp(buff, "!") == 0 || strcmp(buff, "!*") == 0) {
 		buff[0] = 0;
-		not = 1;
+		not = true;
 	}
 
 	return match_records(hash, buff, strlen(buff), mod, not);
@@ -4550,7 +4550,7 @@ ftrace_set_func(unsigned long *array, int *idx, int size, char *buffer)
 	struct dyn_ftrace *rec;
 	struct ftrace_page *pg;
 	int search_len;
-	int fail = 1;
+	bool fail = true;
 	int type, not;
 	char *search;
 	bool exists;
@@ -4583,7 +4583,7 @@ ftrace_set_func(unsigned long *array, int *idx, int size, char *buffer)
 			}
 
 			if (!not) {
-				fail = 0;
+				fail = false;
 				if (!exists) {
 					array[(*idx)++] = rec->ip;
 					if (*idx >= size)
@@ -4593,7 +4593,7 @@ ftrace_set_func(unsigned long *array, int *idx, int size, char *buffer)
 				if (exists) {
 					array[i] = array[--(*idx)];
 					array[*idx] = 0;
-					fail = 0;
+					fail = false;
 				}
 			}
 		}

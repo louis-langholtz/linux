@@ -1561,7 +1561,7 @@ static int kdb_md(int argc, const char **argv)
 	unsigned long addr;
 	unsigned long word;
 	long offset = 0;
-	int symbolic = 0;
+	bool symbolic = false;
 	int valid = 0;
 	int phys = 0;
 
@@ -1681,7 +1681,7 @@ static int kdb_md(int argc, const char **argv)
 	last_bytesperword = bytesperword;
 
 	if (strcmp(argv[0], "mds") == 0) {
-		symbolic = 1;
+		symbolic = true;
 		/* Do not save these changes as last_*, they are temporary mds
 		 * overrides.
 		 */
