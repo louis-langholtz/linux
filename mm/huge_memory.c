@@ -2096,14 +2096,14 @@ int khugepaged_enter_vma_merge(struct vm_area_struct *vma,
 void __khugepaged_exit(struct mm_struct *mm)
 {
 	struct mm_slot *mm_slot;
-	int free = 0;
+	bool free = false;
 
 	spin_lock(&khugepaged_mm_lock);
 	mm_slot = get_mm_slot(mm);
 	if (mm_slot && khugepaged_scan.mm_slot != mm_slot) {
 		hash_del(&mm_slot->hash);
 		list_del(&mm_slot->mm_node);
-		free = 1;
+		free = true;
 	}
 	spin_unlock(&khugepaged_mm_lock);
 

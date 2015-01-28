@@ -964,7 +964,7 @@ int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_typ
 	unsigned long flags;
 	unsigned long onlined_pages = 0;
 	struct zone *zone;
-	int need_zonelists_rebuild = 0;
+	bool need_zonelists_rebuild = false;
 	int nid;
 	int ret;
 	struct memory_notify arg;
@@ -1016,7 +1016,7 @@ int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_typ
 	 */
 	mutex_lock(&zonelists_mutex);
 	if (!populated_zone(zone)) {
-		need_zonelists_rebuild = 1;
+		need_zonelists_rebuild = true;
 		build_all_zonelists(NULL, zone);
 	}
 

@@ -588,7 +588,7 @@ int invalidate_inode_pages2_range(struct address_space *mapping,
 	int i;
 	int ret = 0;
 	int ret2 = 0;
-	int did_range_unmap = 0;
+	bool did_range_unmap = false;
 
 	cleancache_invalidate_inode(mapping);
 	pagevec_init(&pvec, 0);
@@ -626,7 +626,7 @@ int invalidate_inode_pages2_range(struct address_space *mapping,
 					   (loff_t)(1 + end - index)
 							 << PAGE_CACHE_SHIFT,
 					    0);
-					did_range_unmap = 1;
+					did_range_unmap = true;
 				} else {
 					/*
 					 * Just zap this page

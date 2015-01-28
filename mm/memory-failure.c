@@ -1390,7 +1390,7 @@ int unpoison_memory(unsigned long pfn)
 {
 	struct page *page;
 	struct page *p;
-	int freeit = 0;
+	bool freeit = false;
 	unsigned int nr_pages;
 
 	if (!pfn_valid(pfn))
@@ -1443,7 +1443,7 @@ int unpoison_memory(unsigned long pfn)
 	if (TestClearPageHWPoison(page)) {
 		pr_info("MCE: Software-unpoisoned page %#lx\n", pfn);
 		atomic_long_sub(nr_pages, &num_poisoned_pages);
-		freeit = 1;
+		freeit = true;
 		if (PageHuge(page))
 			clear_page_hwpoison_huge_page(page);
 	}

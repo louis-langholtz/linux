@@ -2548,7 +2548,7 @@ int copy_hugetlb_page_range(struct mm_struct *dst, struct mm_struct *src,
 	pte_t *src_pte, *dst_pte, entry;
 	struct page *ptepage;
 	unsigned long addr;
-	int cow;
+	bool cow;
 	struct hstate *h = hstate_vma(vma);
 	unsigned long sz = huge_page_size(h);
 	unsigned long mmun_start;	/* For mmu_notifiers */
@@ -2962,7 +2962,7 @@ static int hugetlb_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
 {
 	struct hstate *h = hstate_vma(vma);
 	int ret = VM_FAULT_SIGBUS;
-	int anon_rmap = 0;
+	bool anon_rmap = false;
 	unsigned long size;
 	struct page *page;
 	pte_t new_pte;
@@ -3023,7 +3023,7 @@ retry:
 				ret = VM_FAULT_OOM;
 				goto backout_unlocked;
 			}
-			anon_rmap = 1;
+			anon_rmap = true;
 		}
 	} else {
 		/*

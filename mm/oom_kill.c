@@ -632,7 +632,7 @@ void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
 	unsigned long freed = 0;
 	unsigned int uninitialized_var(points);
 	enum oom_constraint constraint = CONSTRAINT_NONE;
-	int killed = 0;
+	bool killed = false;
 
 	blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
 	if (freed > 0)
@@ -677,7 +677,7 @@ void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
 	if (p != (void *)-1UL) {
 		oom_kill_process(p, gfp_mask, order, points, totalpages, NULL,
 				 nodemask, "Out of memory");
-		killed = 1;
+		killed = true;
 	}
 out:
 	/*

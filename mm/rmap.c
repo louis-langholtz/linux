@@ -862,7 +862,7 @@ static int page_mkclean_one(struct page *page, struct vm_area_struct *vma,
 	struct mm_struct *mm = vma->vm_mm;
 	pte_t *pte;
 	spinlock_t *ptl;
-	int ret = 0;
+	bool ret = false;
 	int *cleaned = arg;
 
 	pte = page_check_address(page, mm, address, &ptl, 1);
@@ -877,7 +877,7 @@ static int page_mkclean_one(struct page *page, struct vm_area_struct *vma,
 		entry = pte_wrprotect(entry);
 		entry = pte_mkclean(entry);
 		set_pte_at(mm, address, pte, entry);
-		ret = 1;
+		ret = true;
 	}
 
 	pte_unmap_unlock(pte, ptl);

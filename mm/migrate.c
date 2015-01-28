@@ -746,7 +746,7 @@ static int fallback_migrate_page(struct address_space *mapping,
  *  MIGRATEPAGE_SUCCESS - success
  */
 static int move_to_new_page(struct page *newpage, struct page *page,
-				int page_was_mapped, enum migrate_mode mode)
+				bool page_was_mapped, enum migrate_mode mode)
 {
 	struct address_space *mapping;
 	int rc;
@@ -795,10 +795,10 @@ static int move_to_new_page(struct page *newpage, struct page *page,
 }
 
 static int __unmap_and_move(struct page *page, struct page *newpage,
-				int force, enum migrate_mode mode)
+				bool force, enum migrate_mode mode)
 {
 	int rc = -EAGAIN;
-	int page_was_mapped = 0;
+	bool page_was_mapped = false;
 	struct anon_vma *anon_vma = NULL;
 
 	if (!trylock_page(page)) {
@@ -912,7 +912,7 @@ static int __unmap_and_move(struct page *page, struct page *newpage,
 	if (page_mapped(page)) {
 		try_to_unmap(page,
 			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
-		page_was_mapped = 1;
+		page_was_mapped = true;
 	}
 
 skip_unmap:
@@ -937,7 +937,7 @@ out:
  * to the newly allocated page in newpage.
  */
 static int unmap_and_move(new_page_t get_new_page, free_page_t put_new_page,
-			unsigned long private, struct page *page, int force,
+			unsigned long private, struct page *page, bool force,
 			enum migrate_mode mode)
 {
 	int rc = 0;
@@ -1020,7 +1020,7 @@ static int unmap_and_move_huge_page(new_page_t get_new_page,
 {
 	int rc = 0;
 	int *result = NULL;
-	int page_was_mapped = 0;
+	bool page_was_mapped = false;
 	struct page *new_hpage;
 	struct anon_vma *anon_vma = NULL;
 
@@ -1054,7 +1054,7 @@ static int unmap_and_move_huge_page(new_page_t get_new_page,
 	if (page_mapped(hpage)) {
 		try_to_unmap(hpage,
 			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
-		page_was_mapped = 1;
+		page_was_mapped = true;
 	}
 
 	if (!page_mapped(hpage))

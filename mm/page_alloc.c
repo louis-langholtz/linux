@@ -2041,8 +2041,8 @@ get_page_from_freelist(gfp_t gfp_mask, nodemask_t *nodemask, unsigned int order,
 	struct page *page = NULL;
 	struct zone *zone;
 	nodemask_t *allowednodes = NULL;/* zonelist_cache approximation */
-	int zlc_active = 0;		/* set if using zonelist_cache */
-	int did_zlc_setup = 0;		/* just call zlc_setup() one time */
+	bool zlc_active = false;		/* set if using zonelist_cache */
+	bool did_zlc_setup = false;		/* just call zlc_setup() one time */
 	bool consider_zone_dirty = (alloc_flags & ALLOC_WMARK_LOW) &&
 				(gfp_mask & __GFP_WRITE);
 	int nr_fair_skipped = 0;
@@ -2127,8 +2127,8 @@ zonelist_scan:
 				 * by the cpuset.
 				 */
 				allowednodes = zlc_setup(zonelist, alloc_flags);
-				zlc_active = 1;
-				did_zlc_setup = 1;
+				zlc_active = true;
+				did_zlc_setup = true;
 			}
 
 			if (zone_reclaim_mode == 0 ||
@@ -2216,7 +2216,7 @@ this_zone_full:
 
 	if (unlikely(IS_ENABLED(CONFIG_NUMA) && zlc_active)) {
 		/* Disable zlc cache for second zonelist scan */
-		zlc_active = 0;
+		zlc_active = false;
 		zonelist_rescan = true;
 	}
 

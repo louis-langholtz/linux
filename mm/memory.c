@@ -564,7 +564,7 @@ int __pte_alloc(struct mm_struct *mm, struct vm_area_struct *vma,
 {
 	spinlock_t *ptl;
 	pgtable_t new = pte_alloc_one(mm, address);
-	int wait_split_huge_page;
+	bool wait_split_huge_page;
 	if (!new)
 		return -ENOMEM;
 
@@ -584,13 +584,13 @@ int __pte_alloc(struct mm_struct *mm, struct vm_area_struct *vma,
 	smp_wmb(); /* Could be smp_wmb__xxx(before|after)_spin_lock */
 
 	ptl = pmd_lock(mm, pmd);
-	wait_split_huge_page = 0;
+	wait_split_huge_page = false;
 	if (likely(pmd_none(*pmd))) {	/* Has another populated it ? */
 		atomic_long_inc(&mm->nr_ptes);
 		pmd_populate(mm, pmd, new);
 		new = NULL;
 	} else if (unlikely(pmd_trans_splitting(*pmd)))
-		wait_split_huge_page = 1;
+		wait_split_huge_page = true;
 	spin_unlock(ptl);
 	if (new)
 		pte_free(mm, new);
@@ -1077,7 +1077,7 @@ static unsigned long zap_pte_range(struct mmu_gather *tlb,
 				struct zap_details *details)
 {
 	struct mm_struct *mm = tlb->mm;
-	int force_flush = 0;
+	bool force_flush = false;
 	int rss[NR_MM_COUNTERS];
 	spinlock_t *ptl;
 	pte_t *start_pte;
@@ -1133,7 +1133,7 @@ again:
 				rss[MM_ANONPAGES]--;
 			else {
 				if (pte_dirty(ptent)) {
-					force_flush = 1;
+					force_flush = true;
 					set_page_dirty(page);
 				}
 				if (pte_young(ptent) &&
@@ -1145,7 +1145,7 @@ again:
 			if (unlikely(page_mapcount(page) < 0))
 				print_bad_pte(vma, addr, ptent, page);
 			if (unlikely(!__tlb_remove_page(tlb, page))) {
-				force_flush = 1;
+				force_flush = true;
 				addr += PAGE_SIZE;
 				break;
 			}
@@ -1196,7 +1196,7 @@ again:
 	 * memory too. Restart if we didn't do everything.
 	 */
 	if (force_flush) {
-		force_flush = 0;
+		force_flush = false;
 		tlb_flush_mmu_free(tlb);
 
 		if (addr != end)
@@ -2032,7 +2032,7 @@ static int do_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	struct page *old_page, *new_page = NULL;
 	pte_t entry;
 	int ret = 0;
-	int page_mkwrite = 0;
+	bool page_mkwrite = false;
 	struct page *dirty_page = NULL;
 	unsigned long mmun_start = 0;	/* For mmu_notifiers */
 	unsigned long mmun_end = 0;	/* For mmu_notifiers */
@@ -2112,7 +2112,7 @@ static int do_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
 				goto unlock;
 			}
 
-			page_mkwrite = 1;
+			page_mkwrite = true;
 		}
 		dirty_page = old_page;
 		get_page(dirty_page);
@@ -2412,7 +2412,7 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	swp_entry_t entry;
 	pte_t pte;
 	int locked;
-	int exclusive = 0;
+	bool exclusive = false;
 	int ret = 0;
 
 	if (!pte_unmap_same(mm, pmd, page_table, orig_pte))
@@ -2521,7 +2521,7 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
 		flags &= ~FAULT_FLAG_WRITE;
 		ret |= VM_FAULT_WRITE;
-		exclusive = 1;
+		exclusive = true;
 	}
 	flush_icache_page(vma, page);
 	if (pte_swp_soft_dirty(orig_pte))
@@ -2970,7 +2970,7 @@ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	struct address_space *mapping;
 	spinlock_t *ptl;
 	pte_t *pte;
-	int dirtied = 0;
+	bool dirtied = false;
 	int ret, tmp;
 
 	ret = __do_fault(vma, address, pgoff, flags, &fault_page);
@@ -3002,7 +3002,7 @@ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	pte_unmap_unlock(pte, ptl);
 
 	if (set_page_dirty(fault_page))
-		dirtied = 1;
+		dirtied = true;
 	/*
 	 * Take a local copy of the address_space - page.mapping may be zeroed
 	 * by truncate after unlock_page().   The address_space itself remains

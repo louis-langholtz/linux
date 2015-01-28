@@ -1786,7 +1786,7 @@ static void deactivate_slab(struct kmem_cache *s, struct page *page,
 {
 	enum slab_modes { M_NONE, M_PARTIAL, M_FULL, M_FREE };
 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
-	int lock = 0;
+	bool lock = false;
 	enum slab_modes l = M_NONE, m = M_NONE;
 	void *nextfree;
 	int tail = DEACTIVATE_TO_HEAD;
@@ -1862,7 +1862,7 @@ redo:
 	else if (new.freelist) {
 		m = M_PARTIAL;
 		if (!lock) {
-			lock = 1;
+			lock = true;
 			/*
 			 * Taking the spinlock removes the possiblity
 			 * that acquire_slab() will see a slab page that
@@ -1873,7 +1873,7 @@ redo:
 	} else {
 		m = M_FULL;
 		if (kmem_cache_debug(s) && !lock) {
-			lock = 1;
+			lock = true;
 			/*
 			 * This also ensures that the scanning of full
 			 * slabs from diagnostic functions will not see
@@ -2524,7 +2524,7 @@ static void __slab_free(struct kmem_cache *s, struct page *page,
 {
 	void *prior;
 	void **object = (void *)x;
-	int was_frozen;
+	bool was_frozen;
 	struct page new;
 	unsigned long counters;
 	struct kmem_cache_node *n = NULL;
@@ -2545,7 +2545,7 @@ static void __slab_free(struct kmem_cache *s, struct page *page,
 		counters = page->counters;
 		set_freepointer(s, object, prior);
 		new.counters = counters;
-		was_frozen = new.frozen;
+		was_frozen = !!new.frozen;
 		new.inuse--;
 		if ((!new.inuse || !prior) && !was_frozen) {
 
