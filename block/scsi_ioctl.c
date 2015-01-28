@@ -288,8 +288,8 @@ static int sg_io(struct request_queue *q, struct gendisk *bd_disk,
 {
 	unsigned long start_time;
 	ssize_t ret = 0;
-	int writing = 0;
-	int at_head = 0;
+	bool writing = false;
+	bool at_head = false;
 	struct request *rq;
 	char sense[SCSI_SENSE_BUFFERSIZE];
 	struct bio *bio;
@@ -305,14 +305,14 @@ static int sg_io(struct request_queue *q, struct gendisk *bd_disk,
 		default:
 			return -EINVAL;
 		case SG_DXFER_TO_DEV:
-			writing = 1;
+			writing = true;
 			break;
 		case SG_DXFER_TO_FROM_DEV:
 		case SG_DXFER_FROM_DEV:
 			break;
 		}
 	if (hdr->flags & SG_FLAG_Q_AT_HEAD)
-		at_head = 1;
+		at_head = true;
 
 	ret = -ENOMEM;
 	rq = blk_get_request(q, writing ? WRITE : READ, GFP_KERNEL);

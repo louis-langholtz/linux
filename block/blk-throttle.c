@@ -598,7 +598,7 @@ static void tg_service_queue_add(struct throtl_grp *tg)
 	struct rb_node *parent = NULL;
 	struct throtl_grp *__tg;
 	unsigned long key = tg->disptime;
-	int left = 1;
+	bool left = true;
 
 	while (*node != NULL) {
 		parent = *node;
@@ -608,7 +608,7 @@ static void tg_service_queue_add(struct throtl_grp *tg)
 			node = &parent->rb_left;
 		else {
 			node = &parent->rb_right;
-			left = 0;
+			left = false;
 		}
 	}
 

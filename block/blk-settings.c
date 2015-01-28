@@ -208,7 +208,7 @@ EXPORT_SYMBOL(blk_queue_make_request);
 void blk_queue_bounce_limit(struct request_queue *q, u64 max_addr)
 {
 	unsigned long b_pfn = max_addr >> PAGE_SHIFT;
-	int dma = 0;
+	bool dma = false;
 
 	q->bounce_gfp = GFP_NOIO;
 #if BITS_PER_LONG == 64
@@ -218,11 +218,11 @@ void blk_queue_bounce_limit(struct request_queue *q, u64 max_addr)
 	 * way to test this here.
 	 */
 	if (b_pfn < (min_t(u64, 0xffffffffUL, BLK_BOUNCE_HIGH) >> PAGE_SHIFT))
-		dma = 1;
+		dma = true;
 	q->limits.bounce_pfn = max(max_low_pfn, b_pfn);
 #else
 	if (b_pfn < blk_max_low_pfn)
-		dma = 1;
+		dma = true;
 	q->limits.bounce_pfn = b_pfn;
 #endif
 	if (dma) {

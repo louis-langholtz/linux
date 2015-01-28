@@ -1251,7 +1251,7 @@ __cfq_group_service_tree_add(struct cfq_rb_root *st, struct cfq_group *cfqg)
 	struct rb_node *parent = NULL;
 	struct cfq_group *__cfqg;
 	s64 key = cfqg_key(st, cfqg);
-	int left = 1;
+	bool left = true;
 
 	while (*node != NULL) {
 		parent = *node;
@@ -1261,7 +1261,7 @@ __cfq_group_service_tree_add(struct cfq_rb_root *st, struct cfq_group *cfqg)
 			node = &parent->rb_left;
 		else {
 			node = &parent->rb_right;
-			left = 0;
+			left = false;
 		}
 	}
 
@@ -2026,8 +2026,8 @@ static void cfq_service_tree_add(struct cfq_data *cfqd, struct cfq_queue *cfqq,
 	struct cfq_queue *__cfqq;
 	unsigned long rb_key;
 	struct cfq_rb_root *st;
-	int left;
-	int new_cfqq = 1;
+	bool left;
+	bool new_cfqq = true;
 
 	st = st_for(cfqq->cfqg, cfqq_class(cfqq), cfqq_type(cfqq));
 	if (cfq_class_idle(cfqq)) {
@@ -2055,7 +2055,7 @@ static void cfq_service_tree_add(struct cfq_data *cfqd, struct cfq_queue *cfqq,
 	}
 
 	if (!RB_EMPTY_NODE(&cfqq->rb_node)) {
-		new_cfqq = 0;
+		new_cfqq = false;
 		/*
 		 * same position, nothing more to do
 		 */
@@ -2066,7 +2066,7 @@ static void cfq_service_tree_add(struct cfq_data *cfqd, struct cfq_queue *cfqq,
 		cfqq->service_tree = NULL;
 	}
 
-	left = 1;
+	left = true;
 	parent = NULL;
 	cfqq->service_tree = st;
 	p = &st->rb.rb_node;
@@ -2081,7 +2081,7 @@ static void cfq_service_tree_add(struct cfq_data *cfqd, struct cfq_queue *cfqq,
 			p = &parent->rb_left;
 		else {
 			p = &parent->rb_right;
-			left = 0;
+			left = false;
 		}
 	}
 
@@ -4272,7 +4272,7 @@ static void cfq_idle_slice_timer(unsigned long data)
 	struct cfq_data *cfqd = (struct cfq_data *) data;
 	struct cfq_queue *cfqq;
 	unsigned long flags;
-	int timed_out = 1;
+	bool timed_out = true;
 
 	cfq_log(cfqd, "idle timer fired");
 
@@ -4280,7 +4280,7 @@ static void cfq_idle_slice_timer(unsigned long data)
 
 	cfqq = cfqd->active_queue;
 	if (cfqq) {
-		timed_out = 0;
+		timed_out = false;
 
 		/*
 		 * We saw a request before the queue expired, let it through
