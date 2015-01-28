@@ -174,7 +174,7 @@ int zlib_deflateInit2(
 )
 {
     deflate_state *s;
-    int noheader = 0;
+    bool noheader = false;
     deflate_workspace *mem;
     char *next;
 
@@ -192,7 +192,7 @@ int zlib_deflateInit2(
     mem = (deflate_workspace *) strm->workspace;
 
     if (windowBits < 0) { /* undocumented feature: suppress zlib header */
-        noheader = 1;
+        noheader = true;
         windowBits = -windowBits;
     }
     if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || method != Z_DEFLATED ||
