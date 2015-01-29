@@ -302,7 +302,7 @@ out:
 		integrity_audit_msg(AUDIT_INTEGRITY_METADATA, dentry->d_inode,
 				    dentry->d_name.name, "appraise_metadata",
 				    integrity_status_msg[evm_status],
-				    -EPERM, 0);
+				    -EPERM, false);
 	return evm_status == INTEGRITY_PASS ? 0 : -EPERM;
 }
 
@@ -406,7 +406,7 @@ int evm_inode_setattr(struct dentry *dentry, struct iattr *attr)
 		return 0;
 	integrity_audit_msg(AUDIT_INTEGRITY_METADATA, dentry->d_inode,
 			    dentry->d_name.name, "appraise_metadata",
-			    integrity_status_msg[evm_status], -EPERM, 0);
+			    integrity_status_msg[evm_status], -EPERM, false);
 	return -EPERM;
 }
 

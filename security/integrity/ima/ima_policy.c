@@ -679,7 +679,7 @@ ssize_t ima_parse_add_rule(char *rule)
 	char *p;
 	struct ima_rule_entry *entry;
 	ssize_t result, len;
-	int audit_info = 0;
+	bool audit_info = false;
 
 	p = strsep(&rule, "\n");
 	len = strlen(p) + 1;

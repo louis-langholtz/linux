@@ -1887,12 +1887,12 @@ EXPORT_SYMBOL(unmap_mapping_range);
  * Strict overcommit modes added 2002 Feb 26 by Alan Cox.
  * Additional code 2002 Jul 20 by Robert Love.
  *
- * cap_sys_admin is 1 if the process has admin privileges, 0 otherwise.
+ * cap_sys_admin is true if the process has admin privileges, false otherwise.
  *
  * Note this is a helper function intended to be used by LSMs which
  * wish to use this logic.
  */
-int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
+int __vm_enough_memory(struct mm_struct *mm, long pages, bool cap_sys_admin)
 {
 	unsigned long free, allowed, reserve;
 

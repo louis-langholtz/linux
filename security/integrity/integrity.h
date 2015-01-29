@@ -175,12 +175,12 @@ static inline void ima_load_x509(void)
 /* declarations */
 void integrity_audit_msg(int audit_msgno, struct inode *inode,
 			 const unsigned char *fname, const char *op,
-			 const char *cause, int result, int info);
+			 const char *cause, int result, bool info);
 #else
 static inline void integrity_audit_msg(int audit_msgno, struct inode *inode,
 				       const unsigned char *fname,
 				       const char *op, const char *cause,
-				       int result, int info)
+				       int result, bool info)
 {
 }
 #endif

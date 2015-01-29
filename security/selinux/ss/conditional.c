@@ -210,11 +210,11 @@ int cond_index_bool(void *key, void *datum, void *datap)
 	return 0;
 }
 
-static int bool_isvalid(struct cond_bool_datum *b)
+static bool bool_isvalid(struct cond_bool_datum *b)
 {
 	if (!(b->state == 0 || b->state == 1))
-		return 0;
-	return 1;
+		return false;
+	return true;
 }
 
 int cond_read_bool(struct policydb *p, struct hashtab *h, void *fp)
@@ -273,7 +273,7 @@ static int cond_insertf(struct avtab *a, struct avtab_key *k, struct avtab_datum
 	struct policydb *p = data->p;
 	struct cond_av_list *other = data->other, *list, *cur;
 	struct avtab_node *node_ptr;
-	u8 found;
+	bool found;
 	int rc = -EINVAL;
 
 	/*
@@ -301,10 +301,10 @@ static int cond_insertf(struct avtab *a, struct avtab_key *k, struct avtab_datum
 					printk(KERN_ERR "SELinux: too many conflicting type rules.\n");
 					goto err;
 				}
-				found = 0;
+				found = false;
 				for (cur = other; cur; cur = cur->next) {
 					if (cur->node == node_ptr) {
-						found = 1;
+						found = true;
 						break;
 					}
 				}

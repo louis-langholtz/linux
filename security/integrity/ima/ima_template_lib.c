@@ -230,7 +230,7 @@ int ima_eventdigest_init(struct integrity_iint_cache *iint, struct file *file,
 	if (result) {
 		integrity_audit_msg(AUDIT_INTEGRITY_DATA, inode,
 				    filename, "collect_data",
-				    "failed", result, 0);
+				    "failed", result, false);
 		return result;
 	}
 	cur_digest = hash.hdr.digest;

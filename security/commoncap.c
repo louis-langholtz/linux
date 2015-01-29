@@ -949,11 +949,11 @@ int cap_task_prctl(int option, unsigned long arg2, unsigned long arg3,
  */
 int cap_vm_enough_memory(struct mm_struct *mm, long pages)
 {
-	int cap_sys_admin = 0;
+	bool cap_sys_admin = false;
 
 	if (cap_capable(current_cred(), &init_user_ns, CAP_SYS_ADMIN,
 			SECURITY_CAP_NOAUDIT) == 0)
-		cap_sys_admin = 1;
+		cap_sys_admin = true;
 	return __vm_enough_memory(mm, pages, cap_sys_admin);
 }
 

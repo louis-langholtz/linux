@@ -112,7 +112,7 @@ int ima_add_template_entry(struct ima_template_entry *entry, bool violation,
 	u8 digest[TPM_DIGEST_SIZE];
 	const char *audit_cause = "hash_added";
 	char tpm_audit_cause[AUDIT_CAUSE_LEN_MAX];
-	int audit_info = 1;
+	bool audit_info = true;
 	int result = 0, tpmresult = 0;
 
 	mutex_lock(&ima_extend_list_mutex);
@@ -128,7 +128,7 @@ int ima_add_template_entry(struct ima_template_entry *entry, bool violation,
 	result = ima_add_digest_entry(entry);
 	if (result < 0) {
 		audit_cause = "ENOMEM";
-		audit_info = 0;
+		audit_info = false;
 		goto out;
 	}
 
@@ -140,7 +140,7 @@ int ima_add_template_entry(struct ima_template_entry *entry, bool violation,
 		snprintf(tpm_audit_cause, AUDIT_CAUSE_LEN_MAX, "TPM_error(%d)",
 			 tpmresult);
 		audit_cause = tpm_audit_cause;
-		audit_info = 0;
+		audit_info = false;
 	}
 out:
 	mutex_unlock(&ima_extend_list_mutex);

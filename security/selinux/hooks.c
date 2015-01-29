@@ -2083,12 +2083,13 @@ static int selinux_syslog(int type)
  */
 static int selinux_vm_enough_memory(struct mm_struct *mm, long pages)
 {
-	int rc, cap_sys_admin = 0;
+	int rc;
+	bool cap_sys_admin = false;
 
 	rc = selinux_capable(current_cred(), &init_user_ns, CAP_SYS_ADMIN,
 			     SECURITY_CAP_NOAUDIT);
 	if (rc == 0)
-		cap_sys_admin = 1;
+		cap_sys_admin = true;
 
 	return __vm_enough_memory(mm, pages, cap_sys_admin);
 }
@@ -2280,7 +2281,7 @@ static inline void flush_unauthorized_files(const struct cred *cred,
 {
 	struct file *file, *devnull = NULL;
 	struct tty_struct *tty;
-	int drop_tty = 0;
+	bool drop_tty = false;
 	unsigned n;
 
 	tty = get_current_tty();
@@ -2298,7 +2299,7 @@ static inline void flush_unauthorized_files(const struct cred *cred,
 						struct tty_file_private, list);
 			file = file_priv->file;
 			if (file_path_has_perm(cred, file, FILE__READ | FILE__WRITE))
-				drop_tty = 1;
+				drop_tty = true;
 		}
 		spin_unlock(&tty_files_lock);
 		tty_kref_put(tty);
