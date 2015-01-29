@@ -192,7 +192,7 @@ int blk_rq_map_user_iov(struct request_queue *q, struct request *rq,
 {
 	struct bio *bio;
 	int i, read = rq_data_dir(rq) == READ;
-	int unaligned = 0;
+	bool unaligned = false;
 
 	if (!iov || iov_count <= 0)
 		return -EINVAL;
@@ -207,7 +207,7 @@ int blk_rq_map_user_iov(struct request_queue *q, struct request *rq,
 		 * Keep going so we check length of all segments
 		 */
 		if (uaddr & queue_dma_alignment(q))
-			unaligned = 1;
+			unaligned = true;
 	}
 
 	if (unaligned || (q->dma_pad_mask & len) || map_data)
@@ -291,7 +291,7 @@ int blk_rq_map_kern(struct request_queue *q, struct request *rq, void *kbuf,
 {
 	int reading = rq_data_dir(rq) == READ;
 	unsigned long addr = (unsigned long) kbuf;
-	int do_copy = 0;
+	bool do_copy = false;
 	struct bio *bio;
 	int ret;
 

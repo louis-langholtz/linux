@@ -43,8 +43,8 @@ int mpi_powm(MPI res, MPI base, MPI exp, MPI mod)
 	int esign, msign, bsign, rsign;
 	mpi_size_t size;
 	int mod_shift_cnt;
-	int negative_result;
-	int assign_rp = 0;
+	bool negative_result;
+	bool assign_rp = false;
 	mpi_size_t tsize = 0;	/* to avoid compiler warning */
 	/* fixme: we should check that the warning is void */
 	int rc = -ENOMEM;
@@ -116,7 +116,7 @@ int mpi_powm(MPI res, MPI base, MPI exp, MPI mod)
 			rp = mpi_alloc_limb_space(size);
 			if (!rp)
 				goto enomem;
-			assign_rp = 1;
+			assign_rp = true;
 		} else {
 			if (mpi_resize(res, size) < 0)
 				goto enomem;

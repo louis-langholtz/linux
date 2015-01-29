@@ -437,11 +437,11 @@ out:
 	return err;
 }
 
-static int
+static bool
 isatap_chksrc(struct sk_buff *skb, const struct iphdr *iph, struct ip_tunnel *t)
 {
 	struct ip_tunnel_prl_entry *p;
-	int ok = 1;
+	bool ok = true;
 
 	rcu_read_lock();
 	p = __ipip6_tunnel_locate_prl(t, iph->saddr);
@@ -458,7 +458,7 @@ isatap_chksrc(struct sk_buff *skb, const struct iphdr *iph, struct ip_tunnel *t)
 		    ipv6_chk_prefix(addr6, t->dev))
 			skb->ndisc_nodetype = NDISC_NODETYPE_HOST;
 		else
-			ok = 0;
+			ok = false;
 	}
 	rcu_read_unlock();
 	return ok;

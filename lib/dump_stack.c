@@ -25,7 +25,7 @@ static atomic_t dump_lock = ATOMIC_INIT(-1);
 
 asmlinkage __visible void dump_stack(void)
 {
-	int was_locked;
+	bool was_locked;
 	int old;
 	int cpu;
 
@@ -39,9 +39,9 @@ retry:
 	cpu = smp_processor_id();
 	old = atomic_cmpxchg(&dump_lock, -1, cpu);
 	if (old == -1) {
-		was_locked = 0;
+		was_locked = false;
 	} else if (old == cpu) {
-		was_locked = 1;
+		was_locked = true;
 	} else {
 		cpu_relax();
 		goto retry;

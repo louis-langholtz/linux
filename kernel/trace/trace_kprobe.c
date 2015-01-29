@@ -397,7 +397,7 @@ static int
 disable_trace_kprobe(struct trace_kprobe *tk, struct ftrace_event_file *file)
 {
 	struct event_file_link *link = NULL;
-	int wait = 0;
+	bool wait = false;
 	int ret = 0;
 
 	if (file) {
@@ -408,7 +408,7 @@ disable_trace_kprobe(struct trace_kprobe *tk, struct ftrace_event_file *file)
 		}
 
 		list_del_rcu(&link->list);
-		wait = 1;
+		wait = true;
 		if (!list_empty(&tk->tp.files))
 			goto out;
 
@@ -421,7 +421,7 @@ disable_trace_kprobe(struct trace_kprobe *tk, struct ftrace_event_file *file)
 			disable_kretprobe(&tk->rp);
 		else
 			disable_kprobe(&tk->rp.kp);
-		wait = 1;
+		wait = true;
 	}
  out:
 	if (wait) {

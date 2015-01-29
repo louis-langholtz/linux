@@ -245,7 +245,7 @@ static unsigned long move_vma(struct vm_area_struct *vma,
 	unsigned long moved_len;
 	unsigned long excess = 0;
 	unsigned long hiwater_vm;
-	int split = 0;
+	bool split = false;
 	int err;
 	bool need_rmap_locks;
 
@@ -297,7 +297,7 @@ static unsigned long move_vma(struct vm_area_struct *vma,
 		excess = vma->vm_end - vma->vm_start - old_len;
 		if (old_addr > vma->vm_start &&
 		    old_addr + old_len < vma->vm_end)
-			split = 1;
+			split = true;
 	}
 
 	/*

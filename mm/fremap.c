@@ -146,7 +146,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsigned long, start, unsigned long, size,
 	struct address_space *mapping;
 	struct vm_area_struct *vma;
 	int err = -EINVAL;
-	int has_write_lock = 0;
+	bool has_write_lock = false;
 	vm_flags_t vm_flags = 0;
 
 	pr_warn_once("%s (%d) uses deprecated remap_file_pages() syscall. "
@@ -213,7 +213,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsigned long, start, unsigned long, size,
 get_write_lock:
 			up_read(&mm->mmap_sem);
 			down_write(&mm->mmap_sem);
-			has_write_lock = 1;
+			has_write_lock = true;
 			goto retry;
 		}
 		mapping = vma->vm_file->f_mapping;

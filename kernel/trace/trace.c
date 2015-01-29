@@ -3456,7 +3456,7 @@ static int tracing_trace_options_show(struct seq_file *m, void *v)
 
 static int __set_tracer_option(struct trace_array *tr,
 			       struct tracer_flags *tracer_flags,
-			       struct tracer_opt *opts, int neg)
+			       struct tracer_opt *opts, bool neg)
 {
 	struct tracer *trace = tr->current_trace;
 	int ret;
@@ -3473,7 +3473,7 @@ static int __set_tracer_option(struct trace_array *tr,
 }
 
 /* Try to assign a tracer specific option */
-static int set_tracer_option(struct trace_array *tr, char *cmp, int neg)
+static int set_tracer_option(struct trace_array *tr, char *cmp, bool neg)
 {
 	struct tracer *trace = tr->current_trace;
 	struct tracer_flags *tracer_flags = trace->flags;
@@ -3534,14 +3534,14 @@ int set_tracer_flag(struct trace_array *tr, unsigned int mask, int enabled)
 static int trace_set_options(struct trace_array *tr, char *option)
 {
 	char *cmp;
-	int neg = 0;
+	bool neg = false;
 	int ret = -ENODEV;
 	int i;
 
 	cmp = strstrip(option);
 
 	if (strncmp(cmp, "no", 2) == 0) {
-		neg = 1;
+		neg = true;
 		cmp += 2;
 	}
 
@@ -6400,7 +6400,7 @@ static int new_instance_create(const char *name)
 static int instance_delete(const char *name)
 {
 	struct trace_array *tr;
-	int found = 0;
+	bool found = false;
 	int ret;
 
 	mutex_lock(&trace_types_lock);
@@ -6408,7 +6408,7 @@ static int instance_delete(const char *name)
 	ret = -ENODEV;
 	list_for_each_entry(tr, &ftrace_trace_arrays, list) {
 		if (tr->name && strcmp(tr->name, name) == 0) {
-			found = 1;
+			found = true;
 			break;
 		}
 	}
@@ -6918,7 +6918,6 @@ void __init trace_init(void)
 			tracepoint_printk = 0;
 	}
 	tracer_alloc_buffers();
-	init_ftrace_syscalls();
 	trace_event_init();	
 }
 

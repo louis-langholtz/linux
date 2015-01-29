@@ -704,7 +704,7 @@ static int __bio_add_page(struct request_queue *q, struct bio *bio, struct page
 			  *page, unsigned int len, unsigned int offset,
 			  unsigned int max_sectors)
 {
-	int retried_segments = 0;
+	bool retried_segments = false;
 	struct bio_vec *bvec;
 
 	/*
@@ -786,7 +786,7 @@ static int __bio_add_page(struct request_queue *q, struct bio *bio, struct page
 		if (retried_segments)
 			goto failed;
 
-		retried_segments = 1;
+		retried_segments = true;
 		blk_recount_segments(q, bio);
 	}
 

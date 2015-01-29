@@ -1386,7 +1386,7 @@ int kdb_main_loop(kdb_reason_t reason, kdb_reason_t reason2, int error,
 {
 	int result = 1;
 	/* Stay in kdb() until 'go', 'ss[b]' or an error */
-	while (1) {
+	while (true) {
 		/*
 		 * All processors except the one that is in control
 		 * will spin here.
@@ -1561,7 +1561,7 @@ static int kdb_md(int argc, const char **argv)
 	unsigned long addr;
 	unsigned long word;
 	long offset = 0;
-	int symbolic = 0;
+	bool symbolic = false;
 	int valid = 0;
 	int phys = 0;
 
@@ -1681,7 +1681,7 @@ static int kdb_md(int argc, const char **argv)
 	last_bytesperword = bytesperword;
 
 	if (strcmp(argv[0], "mds") == 0) {
-		symbolic = 1;
+		symbolic = true;
 		/* Do not save these changes as last_*, they are temporary mds
 		 * overrides.
 		 */
@@ -2023,7 +2023,7 @@ static int kdb_lsmod(int argc, const char **argv)
 		kdb_printf("%-20s%8u  0x%p ", mod->name,
 			   mod->core_size, (void *)mod);
 #ifdef CONFIG_MODULE_UNLOAD
-		kdb_printf("%4ld ", module_refcount(mod));
+		kdb_printf("%4d ", module_refcount(mod));
 #endif
 		if (mod->state == MODULE_STATE_GOING)
 			kdb_printf(" (Unloading)");

@@ -1072,7 +1072,7 @@ static int audit_log_single_execve_arg(struct audit_context *context,
 			return -1;
 		}
 		buf[to_send] = '\0';
-		has_cntl = !!audit_string_contains_control(buf, to_send);
+		has_cntl = audit_string_contains_control(buf, to_send);
 		if (has_cntl) {
 			/*
 			 * hex messages get logged as 2 bytes, so we can only

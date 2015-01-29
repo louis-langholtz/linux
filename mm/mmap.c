@@ -145,12 +145,12 @@ EXPORT_SYMBOL_GPL(vm_memory_committed);
  * Strict overcommit modes added 2002 Feb 26 by Alan Cox.
  * Additional code 2002 Jul 20 by Robert Love.
  *
- * cap_sys_admin is 1 if the process has admin privileges, 0 otherwise.
+ * cap_sys_admin is true if the process has admin privileges, false otherwise.
  *
  * Note this is a helper function intended to be used by LSMs which
  * wish to use this logic.
  */
-int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
+int __vm_enough_memory(struct mm_struct *mm, long pages, bool cap_sys_admin)
 {
 	unsigned long free, allowed, reserve;
 
@@ -379,7 +379,8 @@ static long vma_compute_subtree_gap(struct vm_area_struct *vma)
 #ifdef CONFIG_DEBUG_VM_RB
 static int browse_rb(struct rb_root *root)
 {
-	int i = 0, j, bug = 0;
+	int i = 0, j;
+	bool bug = false;
 	struct rb_node *nd, *pn = NULL;
 	unsigned long prev = 0, pend = 0;
 
@@ -389,23 +390,23 @@ static int browse_rb(struct rb_root *root)
 		if (vma->vm_start < prev) {
 			pr_emerg("vm_start %lx < prev %lx\n",
 				  vma->vm_start, prev);
-			bug = 1;
+			bug = true;
 		}
 		if (vma->vm_start < pend) {
 			pr_emerg("vm_start %lx < pend %lx\n",
 				  vma->vm_start, pend);
-			bug = 1;
+			bug = true;
 		}
 		if (vma->vm_start > vma->vm_end) {
 			pr_emerg("vm_start %lx > vm_end %lx\n",
 				  vma->vm_start, vma->vm_end);
-			bug = 1;
+			bug = true;
 		}
 		if (vma->rb_subtree_gap != vma_compute_subtree_gap(vma)) {
 			pr_emerg("free gap %lx, correct %lx\n",
 			       vma->rb_subtree_gap,
 			       vma_compute_subtree_gap(vma));
-			bug = 1;
+			bug = true;
 		}
 		i++;
 		pn = nd;
@@ -417,7 +418,7 @@ static int browse_rb(struct rb_root *root)
 		j++;
 	if (i != j) {
 		pr_emerg("backwards %d, forwards %d\n", j, i);
-		bug = 1;
+		bug = true;
 	}
 	return bug ? -1 : i;
 }
@@ -437,7 +438,7 @@ static void validate_mm_rb(struct rb_root *root, struct vm_area_struct *ignore)
 
 static void validate_mm(struct mm_struct *mm)
 {
-	int bug = 0;
+	bool bug = false;
 	int i = 0;
 	unsigned long highest_address = 0;
 	struct vm_area_struct *vma = mm->mmap;
@@ -455,18 +456,18 @@ static void validate_mm(struct mm_struct *mm)
 	}
 	if (i != mm->map_count) {
 		pr_emerg("map_count %d vm_next %d\n", mm->map_count, i);
-		bug = 1;
+		bug = true;
 	}
 	if (highest_address != mm->highest_vm_end) {
 		pr_emerg("mm->highest_vm_end %lx, found %lx\n",
 			  mm->highest_vm_end, highest_address);
-		bug = 1;
+		bug = true;
 	}
 	i = browse_rb(&mm->mm_rb);
 	if (i != mm->map_count) {
 		if (i != -1)
 			pr_emerg("map_count %d rb %d\n", mm->map_count, i);
-		bug = 1;
+		bug = true;
 	}
 	VM_BUG_ON_MM(bug, mm);
 }

@@ -167,7 +167,7 @@ EXPORT_SYMBOL(kmap_to_page);
 static void flush_all_zero_pkmaps(void)
 {
 	int i;
-	int need_flush = 0;
+	bool need_flush = false;
 
 	flush_cache_kmaps();
 
@@ -198,7 +198,7 @@ static void flush_all_zero_pkmaps(void)
 		pte_clear(&init_mm, PKMAP_ADDR(i), &pkmap_page_table[i]);
 
 		set_page_address(page, NULL);
-		need_flush = 1;
+		need_flush = true;
 	}
 	if (need_flush)
 		flush_tlb_kernel_range(PKMAP_ADDR(0), PKMAP_ADDR(LAST_PKMAP));

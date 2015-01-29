@@ -48,11 +48,11 @@ unsigned int _parse_integer(const char *s, unsigned int base, unsigned long long
 {
 	unsigned long long res;
 	unsigned int rv;
-	int overflow;
+	bool overflow;
 
 	res = 0;
 	rv = 0;
-	overflow = 0;
+	overflow = false;
 	while (*s) {
 		unsigned int val;
 
@@ -71,7 +71,7 @@ unsigned int _parse_integer(const char *s, unsigned int base, unsigned long long
 		 */
 		if (unlikely(res & (~0ull << 60))) {
 			if (res > div_u64(ULLONG_MAX - val, base))
-				overflow = 1;
+				overflow = true;
 		}
 		res = res * base + val;
 		rv++;

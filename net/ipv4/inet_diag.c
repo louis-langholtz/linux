@@ -406,14 +406,14 @@ static int inet_diag_bc_run(const struct nlattr *_bc,
 	int len = nla_len(_bc);
 
 	while (len > 0) {
-		int yes = 1;
+		bool yes = true;
 		const struct inet_diag_bc_op *op = bc;
 
 		switch (op->code) {
 		case INET_DIAG_BC_NOP:
 			break;
 		case INET_DIAG_BC_JMP:
-			yes = 0;
+			yes = false;
 			break;
 		case INET_DIAG_BC_S_GE:
 			yes = entry->sport >= op[1].no;
@@ -439,7 +439,7 @@ static int inet_diag_bc_run(const struct nlattr *_bc,
 			if (cond->port != -1 &&
 			    cond->port != (op->code == INET_DIAG_BC_S_COND ?
 					     entry->sport : entry->dport)) {
-				yes = 0;
+				yes = false;
 				break;
 			}
 
@@ -459,7 +459,7 @@ static int inet_diag_bc_run(const struct nlattr *_bc,
 							    cond->prefix_len))
 						break;
 				}
-				yes = 0;
+				yes = false;
 				break;
 			}
 
@@ -468,7 +468,7 @@ static int inet_diag_bc_run(const struct nlattr *_bc,
 			if (bitstring_match(addr, cond->addr,
 					    cond->prefix_len))
 				break;
-			yes = 0;
+			yes = false;
 			break;
 		}
 		}

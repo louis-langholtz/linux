@@ -564,10 +564,10 @@ trace_selftest_function_regs(void)
 	char *func_name;
 	int len;
 	int ret;
-	int supported = 0;
+	bool supported = false;
 
 #ifdef CONFIG_DYNAMIC_FTRACE_WITH_REGS
-	supported = 1;
+	supported = true;
 #endif
 
 	/* The previous test PASSED */

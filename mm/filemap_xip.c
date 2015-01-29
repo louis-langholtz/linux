@@ -77,7 +77,7 @@ do_xip_mapping_read(struct address_space *mapping,
 		unsigned long nr, left;
 		void *xip_mem;
 		unsigned long xip_pfn;
-		int zero = 0;
+		bool zero = false;
 
 		/* nr is the maximum number of bytes to copy from this page */
 		nr = PAGE_CACHE_SIZE;
@@ -98,7 +98,7 @@ do_xip_mapping_read(struct address_space *mapping,
 		if (unlikely(error)) {
 			if (error == -ENODATA) {
 				/* sparse */
-				zero = 1;
+				zero = true;
 			} else
 				goto out;
 		}
@@ -165,7 +165,7 @@ static void __xip_unmap(struct address_space * mapping, unsigned long pgoff)
 	struct vm_area_struct *vma;
 	struct page *page;
 	unsigned count;
-	int locked = 0;
+	bool locked = false;
 
 	count = read_seqcount_begin(&xip_sparse_seq);
 
@@ -203,7 +203,7 @@ retry:
 		mutex_unlock(&xip_sparse_mutex);
 	} else if (read_seqcount_retry(&xip_sparse_seq, count)) {
 		mutex_lock(&xip_sparse_mutex);
-		locked = 1;
+		locked = true;
 		goto retry;
 	}
 }

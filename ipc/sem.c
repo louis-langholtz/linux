@@ -824,7 +824,7 @@ static int do_smart_wakeup_zero(struct sem_array *sma, struct sembuf *sops,
 {
 	int i;
 	int semop_completed = 0;
-	int got_zero = 0;
+	bool got_zero = false;
 
 	/* first: the per-semaphore queues, if known */
 	if (sops) {
@@ -832,7 +832,7 @@ static int do_smart_wakeup_zero(struct sem_array *sma, struct sembuf *sops,
 			int num = sops[i].sem_num;
 
 			if (sma->sem_base[num].semval == 0) {
-				got_zero = 1;
+				got_zero = true;
 				semop_completed |= wake_const_ops(sma, num, pt);
 			}
 		}
@@ -843,7 +843,7 @@ static int do_smart_wakeup_zero(struct sem_array *sma, struct sembuf *sops,
 		 */
 		for (i = 0; i < sma->sem_nsems; i++) {
 			if (sma->sem_base[i].semval == 0) {
-				got_zero = 1;
+				got_zero = true;
 				semop_completed |= wake_const_ops(sma, i, pt);
 			}
 		}

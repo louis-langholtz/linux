@@ -276,7 +276,7 @@ out:
 				status = INTEGRITY_PASS;
 		}
 		integrity_audit_msg(AUDIT_INTEGRITY_DATA, inode, filename,
-				    op, cause, rc, 0);
+				    op, cause, rc, false);
 	} else {
 		ima_cache_flags(iint, func);
 	}

@@ -47,7 +47,7 @@ int blk_rq_count_integrity_sg(struct request_queue *q, struct bio *bio)
 	unsigned int segments = 0;
 	unsigned int seg_size = 0;
 	struct bvec_iter iter;
-	int prev = 0;
+	bool prev = false;
 
 	bio_for_each_integrity_vec(iv, bio, iter) {
 
@@ -68,7 +68,7 @@ new_segment:
 			seg_size = iv.bv_len;
 		}
 
-		prev = 1;
+		prev = true;
 		ivprv = iv;
 	}
 
@@ -93,7 +93,7 @@ int blk_rq_map_integrity_sg(struct request_queue *q, struct bio *bio,
 	struct scatterlist *sg = NULL;
 	unsigned int segments = 0;
 	struct bvec_iter iter;
-	int prev = 0;
+	bool prev = false;
 
 	bio_for_each_integrity_vec(iv, bio, iter) {
 
@@ -121,7 +121,7 @@ new_segment:
 			segments++;
 		}
 
-		prev = 1;
+		prev = true;
 		ivprv = iv;
 	}
 

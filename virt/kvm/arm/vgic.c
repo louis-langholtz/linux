@@ -1397,7 +1397,7 @@ static void __kvm_vgic_flush_hwstate(struct kvm_vcpu *vcpu)
 	struct vgic_cpu *vgic_cpu = &vcpu->arch.vgic_cpu;
 	struct vgic_dist *dist = &vcpu->kvm->arch.vgic;
 	int i, vcpu_id;
-	int overflow = 0;
+	bool overflow = false;
 
 	vcpu_id = vcpu->vcpu_id;
 
@@ -1414,19 +1414,19 @@ static void __kvm_vgic_flush_hwstate(struct kvm_vcpu *vcpu)
 	/* SGIs */
 	for_each_set_bit(i, vgic_cpu->pending_percpu, VGIC_NR_SGIS) {
 		if (!vgic_queue_sgi(vcpu, i))
-			overflow = 1;
+			overflow = true;
 	}
 
 	/* PPIs */
 	for_each_set_bit_from(i, vgic_cpu->pending_percpu, VGIC_NR_PRIVATE_IRQS) {
 		if (!vgic_queue_hwirq(vcpu, i))
-			overflow = 1;
+			overflow = true;
 	}
 
 	/* SPIs */
 	for_each_set_bit(i, vgic_cpu->pending_shared, vgic_nr_shared_irqs(dist)) {
 		if (!vgic_queue_hwirq(vcpu, i + VGIC_NR_PRIVATE_IRQS))
-			overflow = 1;
+			overflow = true;
 	}
 
 epilog:

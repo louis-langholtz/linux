@@ -1726,7 +1726,7 @@ static int alg_test_cprng(const struct alg_test_desc *desc, const char *driver,
 }
 
 
-static int drbg_cavs_test(struct drbg_testvec *test, int pr,
+static int drbg_cavs_test(struct drbg_testvec *test, bool pr,
 			  const char *driver, u32 type, u32 mask)
 {
 	int ret = -EAGAIN;
@@ -1798,13 +1798,13 @@ static int alg_test_drbg(const struct alg_test_desc *desc, const char *driver,
 			 u32 type, u32 mask)
 {
 	int err = 0;
-	int pr = 0;
+	bool pr = false;
 	int i = 0;
 	struct drbg_testvec *template = desc->suite.drbg.vecs;
 	unsigned int tcount = desc->suite.drbg.count;
 
 	if (0 == memcmp(driver, "drbg_pr_", 8))
-		pr = 1;
+		pr = true;
 
 	for (i = 0; i < tcount; i++) {
 		err = drbg_cavs_test(&template[i], pr, driver, type, mask);

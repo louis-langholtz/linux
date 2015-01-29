@@ -119,7 +119,7 @@ void bdi_start_writeback(struct backing_dev_info *bdi, long nr_pages,
 			enum wb_reason reason);
 void bdi_start_background_writeback(struct backing_dev_info *bdi);
 void bdi_writeback_workfn(struct work_struct *work);
-int bdi_has_dirty_io(struct backing_dev_info *bdi);
+bool bdi_has_dirty_io(struct backing_dev_info *bdi);
 void bdi_wakeup_thread_delayed(struct backing_dev_info *bdi);
 
 extern spinlock_t bdi_lock;
@@ -127,7 +127,7 @@ extern struct list_head bdi_list;
 
 extern struct workqueue_struct *bdi_wq;
 
-static inline int wb_has_dirty_io(struct bdi_writeback *wb)
+static inline bool wb_has_dirty_io(struct bdi_writeback *wb)
 {
 	return !list_empty(&wb->b_dirty) ||
 	       !list_empty(&wb->b_io) ||

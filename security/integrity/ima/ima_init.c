@@ -56,7 +56,7 @@ static int __init ima_add_boot_aggregate(void)
 	struct ima_template_entry *entry;
 	struct integrity_iint_cache tmp_iint, *iint = &tmp_iint;
 	int result = -ENOMEM;
-	int violation = 0;
+	bool violation = false;
 	struct {
 		struct ima_digest_data hdr;
 		char digest[TPM_DIGEST_SIZE];
@@ -93,7 +93,7 @@ static int __init ima_add_boot_aggregate(void)
 	return 0;
 err_out:
 	integrity_audit_msg(AUDIT_INTEGRITY_PCR, NULL, boot_aggregate_name, op,
-			    audit_cause, result, 0);
+			    audit_cause, result, false);
 	return result;
 }
 

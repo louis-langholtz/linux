@@ -166,7 +166,7 @@ static inline void init_timer_on_stack_key(struct timer_list *timer,
  *
  * return value: 1 if the timer is pending, 0 if not.
  */
-static inline int timer_pending(const struct timer_list * timer)
+static inline bool timer_pending(const struct timer_list * timer)
 {
 	return timer->entry.next != NULL;
 }
@@ -179,8 +179,8 @@ extern int mod_timer_pinned(struct timer_list *timer, unsigned long expires);
 
 extern void set_timer_slack(struct timer_list *time, int slack_hz);
 
-#define TIMER_NOT_PINNED	0
-#define TIMER_PINNED		1
+#define TIMER_NOT_PINNED	false
+#define TIMER_PINNED		true
 /*
  * The jiffies value which is added to now, when there is no timer
  * in the timer wheel:

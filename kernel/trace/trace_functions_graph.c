@@ -1030,7 +1030,7 @@ print_graph_return(struct ftrace_graph_ret *trace, struct trace_seq *s,
 	struct fgraph_data *data = iter->private;
 	pid_t pid = ent->pid;
 	int cpu = iter->cpu;
-	int func_match = 1;
+	bool func_match = true;
 	int i;
 
 	if (check_irq_return(iter, flags, trace->depth))
@@ -1051,7 +1051,7 @@ print_graph_return(struct ftrace_graph_ret *trace, struct trace_seq *s,
 
 		if (trace->depth < FTRACE_RETFUNC_DEPTH) {
 			if (cpu_data->enter_funcs[trace->depth] != trace->func)
-				func_match = 0;
+				func_match = false;
 			cpu_data->enter_funcs[trace->depth] = 0;
 		}
 	}

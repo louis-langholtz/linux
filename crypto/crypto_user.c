@@ -44,14 +44,14 @@ struct crypto_dump_info {
 	u16 nlmsg_flags;
 };
 
-static struct crypto_alg *crypto_alg_match(struct crypto_user_alg *p, int exact)
+static struct crypto_alg *crypto_alg_match(struct crypto_user_alg *p, bool exact)
 {
 	struct crypto_alg *q, *alg = NULL;
 
 	down_read(&crypto_alg_sem);
 
 	list_for_each_entry(q, &crypto_alg_list, cra_list) {
-		int match = 0;
+		bool match = false;
 
 		if ((q->cra_flags ^ p->cru_type) & p->cru_mask)
 			continue;
@@ -201,7 +201,7 @@ static int crypto_report(struct sk_buff *in_skb, struct nlmsghdr *in_nlh,
 	if (!null_terminated(p->cru_name) || !null_terminated(p->cru_driver_name))
 		return -EINVAL;
 
-	alg = crypto_alg_match(p, 0);
+	alg = crypto_alg_match(p, false);
 	if (!alg)
 		return -ENOENT;
 
@@ -271,7 +271,7 @@ static int crypto_update_alg(struct sk_buff *skb, struct nlmsghdr *nlh,
 	if (priority && !strlen(p->cru_driver_name))
 		return -EINVAL;
 
-	alg = crypto_alg_match(p, 1);
+	alg = crypto_alg_match(p, true);
 	if (!alg)
 		return -ENOENT;
 
@@ -301,7 +301,7 @@ static int crypto_del_alg(struct sk_buff *skb, struct nlmsghdr *nlh,
 	if (!null_terminated(p->cru_name) || !null_terminated(p->cru_driver_name))
 		return -EINVAL;
 
-	alg = crypto_alg_match(p, 1);
+	alg = crypto_alg_match(p, true);
 	if (!alg)
 		return -ENOENT;
 
@@ -376,7 +376,7 @@ static struct crypto_alg *crypto_user_aead_alg(const char *name, u32 type,
 static int crypto_add_alg(struct sk_buff *skb, struct nlmsghdr *nlh,
 			  struct nlattr **attrs)
 {
-	int exact = 0;
+	bool exact = false;
 	const char *name;
 	struct crypto_alg *alg;
 	struct crypto_user_alg *p = nlmsg_data(nlh);
@@ -389,7 +389,7 @@ static int crypto_add_alg(struct sk_buff *skb, struct nlmsghdr *nlh,
 		return -EINVAL;
 
 	if (strlen(p->cru_driver_name))
-		exact = 1;
+		exact = true;
 
 	if (priority && !exact)
 		return -EINVAL;

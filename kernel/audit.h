@@ -246,7 +246,7 @@ extern int audit_gid_comparator(kgid_t left, u32 op, kgid_t right);
 extern int parent_len(const char *path);
 extern int audit_compare_dname_path(const char *dname, const char *path, int plen);
 extern struct sk_buff *audit_make_reply(__u32 portid, int seq, int type,
-					int done, int multi,
+					bool done, bool multi,
 					const void *payload, int size);
 extern void		    audit_panic(const char *message);
 

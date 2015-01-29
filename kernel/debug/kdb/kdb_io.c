@@ -555,7 +555,7 @@ int vkdb_printf(const char *fmt, va_list ap)
 	int colcount;
 	int logging, saved_loglevel = 0;
 	int saved_trap_printk;
-	int got_printf_lock = 0;
+	bool got_printf_lock = false;
 	int retlen = 0;
 	int fnd, len;
 	char *cp, *cp2, *cphold = NULL, replaced_byte = ' ';
@@ -575,7 +575,7 @@ int vkdb_printf(const char *fmt, va_list ap)
 	if (!KDB_STATE(PRINTF_LOCK)) {
 		KDB_STATE_SET(PRINTF_LOCK);
 		spin_lock_irqsave(&kdb_printf_lock, flags);
-		got_printf_lock = 1;
+		got_printf_lock = true;
 		atomic_inc(&kdb_event);
 	} else {
 		__acquire(kdb_printf_lock);
@@ -826,7 +826,7 @@ kdb_print_out:
 	if (logging)
 		console_loglevel = saved_loglevel;
 	if (KDB_STATE(PRINTF_LOCK) && got_printf_lock) {
-		got_printf_lock = 0;
+		got_printf_lock = false;
 		spin_unlock_irqrestore(&kdb_printf_lock, flags);
 		KDB_STATE_CLEAR(PRINTF_LOCK);
 		atomic_dec(&kdb_event);

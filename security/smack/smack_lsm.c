@@ -552,8 +552,8 @@ static int smack_sb_kern_mount(struct super_block *sb, int flags, void *data)
 	struct smack_known *skp;
 	char *op;
 	char *commap;
-	int transmute = 0;
-	int specified = 0;
+	bool transmute = false;
+	bool specified = false;
 
 	if (sp->smk_initialized)
 		return 0;
@@ -570,14 +570,14 @@ static int smack_sb_kern_mount(struct super_block *sb, int flags, void *data)
 			skp = smk_import_entry(op, 0);
 			if (skp != NULL) {
 				sp->smk_hat = skp;
-				specified = 1;
+				specified = true;
 			}
 		} else if (strncmp(op, SMK_FSFLOOR, strlen(SMK_FSFLOOR)) == 0) {
 			op += strlen(SMK_FSFLOOR);
 			skp = smk_import_entry(op, 0);
 			if (skp != NULL) {
 				sp->smk_floor = skp;
-				specified = 1;
+				specified = true;
 			}
 		} else if (strncmp(op, SMK_FSDEFAULT,
 				   strlen(SMK_FSDEFAULT)) == 0) {
@@ -585,22 +585,22 @@ static int smack_sb_kern_mount(struct super_block *sb, int flags, void *data)
 			skp = smk_import_entry(op, 0);
 			if (skp != NULL) {
 				sp->smk_default = skp;
-				specified = 1;
+				specified = true;
 			}
 		} else if (strncmp(op, SMK_FSROOT, strlen(SMK_FSROOT)) == 0) {
 			op += strlen(SMK_FSROOT);
 			skp = smk_import_entry(op, 0);
 			if (skp != NULL) {
 				sp->smk_root = skp;
-				specified = 1;
+				specified = true;
 			}
 		} else if (strncmp(op, SMK_FSTRANS, strlen(SMK_FSTRANS)) == 0) {
 			op += strlen(SMK_FSTRANS);
 			skp = smk_import_entry(op, 0);
 			if (skp != NULL) {
 				sp->smk_root = skp;
-				transmute = 1;
-				specified = 1;
+				transmute = true;
+				specified = true;
 			}
 		}
 	}
@@ -1059,9 +1059,9 @@ static int smack_inode_setxattr(struct dentry *dentry, const char *name,
 {
 	struct smk_audit_info ad;
 	struct smack_known *skp;
-	int check_priv = 0;
-	int check_import = 0;
-	int check_star = 0;
+	bool check_priv = false;
+	bool check_import = false;
+	bool check_star = false;
 	int rc = 0;
 
 	/*
@@ -1070,15 +1070,15 @@ static int smack_inode_setxattr(struct dentry *dentry, const char *name,
 	if (strcmp(name, XATTR_NAME_SMACK) == 0 ||
 	    strcmp(name, XATTR_NAME_SMACKIPIN) == 0 ||
 	    strcmp(name, XATTR_NAME_SMACKIPOUT) == 0) {
-		check_priv = 1;
-		check_import = 1;
+		check_priv = true;
+		check_import = true;
 	} else if (strcmp(name, XATTR_NAME_SMACKEXEC) == 0 ||
 		   strcmp(name, XATTR_NAME_SMACKMMAP) == 0) {
-		check_priv = 1;
-		check_import = 1;
-		check_star = 1;
+		check_priv = true;
+		check_import = true;
+		check_star = true;
 	} else if (strcmp(name, XATTR_NAME_SMACKTRANSMUTE) == 0) {
-		check_priv = 1;
+		check_priv = true;
 		if (size != TRANS_TRUE_SIZE ||
 		    strncmp(value, TRANS_TRUE, TRANS_TRUE_SIZE) != 0)
 			rc = -EINVAL;
@@ -3397,7 +3397,7 @@ static struct smack_known *smack_from_secattr(struct netlbl_lsm_secattr *sap,
 						struct socket_smack *ssp)
 {
 	struct smack_known *skp;
-	int found = 0;
+	bool found = false;
 	int acat;
 	int kcat;
 
@@ -3422,7 +3422,7 @@ static struct smack_known *smack_from_secattr(struct netlbl_lsm_secattr *sap,
 			if ((sap->flags & NETLBL_SECATTR_MLS_CAT) == 0) {
 				if ((skp->smk_netlabel.flags &
 				     NETLBL_SECATTR_MLS_CAT) == 0)
-					found = 1;
+					found = true;
 				break;
 			}
 			for (acat = -1, kcat = -1; acat == kcat; ) {
@@ -3435,7 +3435,7 @@ static struct smack_known *smack_from_secattr(struct netlbl_lsm_secattr *sap,
 					break;
 			}
 			if (acat == kcat) {
-				found = 1;
+				found = true;
 				break;
 			}
 		}

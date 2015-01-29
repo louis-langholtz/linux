@@ -215,7 +215,8 @@ static inline void __frontswap_clear(struct swap_info_struct *sis,
  */
 int __frontswap_store(struct page *page)
 {
-	int ret = -1, dup = 0;
+	int ret = -1;
+	bool dup = false;
 	swp_entry_t entry = { .val = page_private(page), };
 	int type = swp_type(entry);
 	struct swap_info_struct *sis = swap_info[type];
@@ -231,7 +232,7 @@ int __frontswap_store(struct page *page)
 	BUG_ON(!PageLocked(page));
 	BUG_ON(sis == NULL);
 	if (__frontswap_test(sis, offset))
-		dup = 1;
+		dup = true;
 	ret = frontswap_ops->store(type, offset, page);
 	if (ret == 0) {
 		set_bit(offset, sis->frontswap_map);

@@ -198,14 +198,14 @@ __account_scheduler_latency(struct task_struct *tsk, int usecs, int inter)
 
 	for (i = 0; i < tsk->latency_record_count; i++) {
 		struct latency_record *mylat;
-		int same = 1;
+		bool same = true;
 
 		mylat = &tsk->latency_record[i];
 		for (q = 0; q < LT_BACKTRACEDEPTH; q++) {
 			unsigned long record = lat.backtrace[q];
 
 			if (mylat->backtrace[q] != record) {
-				same = 0;
+				same = false;
 				break;
 			}
 

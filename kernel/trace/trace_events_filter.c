@@ -416,7 +416,7 @@ static int walk_pred_tree(struct filter_pred *preds,
 {
 	struct filter_pred *pred = root;
 	enum move_type move = MOVE_DOWN;
-	int done = 0;
+	bool done = false;
 
 	if  (!preds)
 		return -EINVAL;
@@ -450,7 +450,7 @@ static int walk_pred_tree(struct filter_pred *preds,
 					       &move);
 			continue;
 		}
-		done = 1;
+		done = true;
 	} while (!done);
 
 	/* We are fine. */
@@ -468,7 +468,7 @@ static int process_ops(struct filter_pred *preds,
 {
 	struct filter_pred *pred;
 	int match = 0;
-	int type;
+	bool type;
 	int i;
 
 	/*

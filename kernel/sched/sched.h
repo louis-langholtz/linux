@@ -433,12 +433,12 @@ struct rt_rq {
 #ifdef CONFIG_SMP
 	unsigned long rt_nr_migratory;
 	unsigned long rt_nr_total;
-	int overloaded;
+	bool overloaded;
 	struct plist_head pushable_tasks;
 #endif
-	int rt_queued;
+	bool rt_queued;
 
-	int rt_throttled;
+	bool rt_throttled;
 	u64 rt_time;
 	u64 rt_runtime;
 	/* Nests inside the rq lock: */
@@ -473,7 +473,7 @@ struct dl_rq {
 	} earliest_dl;
 
 	unsigned long dl_nr_migratory;
-	int overloaded;
+	bool overloaded;
 
 	/*
 	 * Tasks on this rq that can be pushed away. They are kept in
@@ -601,13 +601,13 @@ struct rq {
 
 	unsigned char idle_balance;
 	/* For active balancing */
-	int post_schedule;
-	int active_balance;
+	bool post_schedule;
+	bool active_balance;
 	int push_cpu;
 	struct cpu_stop_work active_balance_work;
 	/* cpu of this runqueue: */
 	int cpu;
-	int online;
+	bool online;
 
 	struct list_head cfs_tasks;
 
@@ -636,7 +636,7 @@ struct rq {
 
 #ifdef CONFIG_SCHED_HRTICK
 #ifdef CONFIG_SMP
-	int hrtick_csd_pending;
+	bool hrtick_csd_pending;
 	struct call_single_data hrtick_csd;
 #endif
 	struct hrtimer hrtick_timer;
@@ -1160,7 +1160,7 @@ struct sched_class {
 #endif
 
 	void (*set_curr_task) (struct rq *rq);
-	void (*task_tick) (struct rq *rq, struct task_struct *p, int queued);
+	void (*task_tick) (struct rq *rq, struct task_struct *p, bool queued);
 	void (*task_fork) (struct task_struct *p);
 	void (*task_dead) (struct task_struct *p);
 
@@ -1180,7 +1180,7 @@ struct sched_class {
 	void (*update_curr) (struct rq *rq);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
-	void (*task_move_group) (struct task_struct *p, int on_rq);
+	void (*task_move_group) (struct task_struct *p, bool on_rq);
 #endif
 };
 
@@ -1394,12 +1394,12 @@ static inline int _double_lock_balance(struct rq *this_rq, struct rq *busiest)
  * grant the double lock to lower cpus over higher ids under contention,
  * regardless of entry order into the function.
  */
-static inline int _double_lock_balance(struct rq *this_rq, struct rq *busiest)
+static inline bool _double_lock_balance(struct rq *this_rq, struct rq *busiest)
 	__releases(this_rq->lock)
 	__acquires(busiest->lock)
 	__acquires(this_rq->lock)
 {
-	int ret = 0;
+	bool ret = false;
 
 	if (unlikely(!raw_spin_trylock(&busiest->lock))) {
 		if (busiest < this_rq) {
@@ -1407,7 +1407,7 @@ static inline int _double_lock_balance(struct rq *this_rq, struct rq *busiest)
 			raw_spin_lock(&busiest->lock);
 			raw_spin_lock_nested(&this_rq->lock,
 					      SINGLE_DEPTH_NESTING);
-			ret = 1;
+			ret = true;
 		} else
 			raw_spin_lock_nested(&busiest->lock,
 					      SINGLE_DEPTH_NESTING);
@@ -1420,7 +1420,7 @@ static inline int _double_lock_balance(struct rq *this_rq, struct rq *busiest)
 /*
  * double_lock_balance - lock the busiest runqueue, this_rq is locked already.
  */
-static inline int double_lock_balance(struct rq *this_rq, struct rq *busiest)
+static inline bool double_lock_balance(struct rq *this_rq, struct rq *busiest)
 {
 	if (unlikely(!irqs_disabled())) {
 		/* printk() doesn't work good under rq->lock */

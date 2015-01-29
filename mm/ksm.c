@@ -1824,7 +1824,7 @@ int __ksm_enter(struct mm_struct *mm)
 void __ksm_exit(struct mm_struct *mm)
 {
 	struct mm_slot *mm_slot;
-	int easy_to_free = 0;
+	bool easy_to_free = false;
 
 	/*
 	 * This process is exiting: if it's straightforward (as is the
@@ -1841,7 +1841,7 @@ void __ksm_exit(struct mm_struct *mm)
 		if (!mm_slot->rmap_list) {
 			hash_del(&mm_slot->link);
 			list_del(&mm_slot->mm_list);
-			easy_to_free = 1;
+			easy_to_free = true;
 		} else {
 			list_move(&mm_slot->mm_list,
 				  &ksm_scan.mm_slot->mm_list);

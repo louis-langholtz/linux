@@ -218,7 +218,7 @@ static int smk_set_access(struct smack_parsed_rule *srp,
 {
 	struct smack_rule *sp;
 	struct smack_master_list *smlp;
-	int found = 0;
+	bool found = false;
 	int rc = 0;
 
 	mutex_lock(rule_lock);
@@ -230,14 +230,14 @@ static int smk_set_access(struct smack_parsed_rule *srp,
 	list_for_each_entry_rcu(sp, rule_list, list) {
 		if (sp->smk_object == srp->smk_object &&
 		    sp->smk_subject == srp->smk_subject) {
-			found = 1;
+			found = true;
 			sp->smk_access |= srp->smk_access1;
 			sp->smk_access &= ~srp->smk_access2;
 			break;
 		}
 	}
 
-	if (found == 0) {
+	if (!found) {
 		sp = kzalloc(sizeof(*sp), GFP_KERNEL);
 		if (sp == NULL) {
 			rc = -ENOMEM;
@@ -466,7 +466,7 @@ static ssize_t smk_write_rules_list(struct file *file, const char __user *buf,
 	struct smack_parsed_rule rule;
 	char *data;
 	int rc;
-	int trunc = 0;
+	bool trunc = false;
 	int tokens;
 	ssize_t cnt = 0;
 
@@ -486,7 +486,7 @@ static ssize_t smk_write_rules_list(struct file *file, const char __user *buf,
 	} else {
 		if (count >= PAGE_SIZE) {
 			count = PAGE_SIZE - 1;
-			trunc = 1;
+			trunc = true;
 		}
 	}
 
@@ -1168,7 +1168,7 @@ static ssize_t smk_write_netlbladdr(struct file *file, const char __user *buf,
 	struct netlbl_audit audit_info;
 	struct in_addr mask;
 	unsigned int m;
-	int found;
+	bool found;
 	u32 mask_bits = (1<<31);
 	__be32 nsa;
 	u32 temp_mask;
@@ -1254,17 +1254,17 @@ static ssize_t smk_write_netlbladdr(struct file *file, const char __user *buf,
 
 	nsa = newname.sin_addr.s_addr;
 	/* try to find if the prefix is already in the list */
-	found = 0;
+	found = false;
 	list_for_each_entry_rcu(snp, &smk_netlbladdr_list, list) {
 		if (snp->smk_host.sin_addr.s_addr == nsa &&
 		    snp->smk_mask.s_addr == mask.s_addr) {
-			found = 1;
+			found = true;
 			break;
 		}
 	}
 	smk_netlabel_audit_set(&audit_info);
 
-	if (found == 0) {
+	if (!found) {
 		snp = kzalloc(sizeof(*snp), GFP_KERNEL);
 		if (snp == NULL)
 			rc = -ENOMEM;

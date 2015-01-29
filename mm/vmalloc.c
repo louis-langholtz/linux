@@ -349,7 +349,7 @@ static struct vmap_area *alloc_vmap_area(unsigned long size,
 	struct vmap_area *va;
 	struct rb_node *n;
 	unsigned long addr;
-	int purged = 0;
+	bool purged = false;
 	struct vmap_area *first;
 
 	BUG_ON(!size);
@@ -459,7 +459,7 @@ overflow:
 	spin_unlock(&vmap_area_lock);
 	if (!purged) {
 		purge_vmap_area_lazy();
-		purged = 1;
+		purged = true;
 		goto retry;
 	}
 	if (printk_ratelimit())
@@ -593,7 +593,7 @@ void set_iounmap_nonlazy(void)
  *              *end = max(*end, highest purged address)
  */
 static void __purge_vmap_area_lazy(unsigned long *start, unsigned long *end,
-					int sync, int force_flush)
+					bool sync, bool force_flush)
 {
 	static DEFINE_SPINLOCK(purge_lock);
 	LIST_HEAD(valist);
@@ -653,7 +653,7 @@ static void try_purge_vmap_area_lazy(void)
 {
 	unsigned long start = ULONG_MAX, end = 0;
 
-	__purge_vmap_area_lazy(&start, &end, 0, 0);
+	__purge_vmap_area_lazy(&start, &end, false, false);
 }
 
 /*
@@ -663,7 +663,7 @@ static void purge_vmap_area_lazy(void)
 {
 	unsigned long start = ULONG_MAX, end = 0;
 
-	__purge_vmap_area_lazy(&start, &end, 1, 0);
+	__purge_vmap_area_lazy(&start, &end, true, false);
 }
 
 /*
@@ -1012,7 +1012,7 @@ void vm_unmap_aliases(void)
 {
 	unsigned long start = ULONG_MAX, end = 0;
 	int cpu;
-	int flush = 0;
+	bool flush = false;
 
 	if (unlikely(!vmap_initialized))
 		return;
@@ -1036,7 +1036,7 @@ void vm_unmap_aliases(void)
 
 				s = vb->va->va_start + (i << PAGE_SHIFT);
 				e = vb->va->va_start + (j << PAGE_SHIFT);
-				flush = 1;
+				flush = true;
 
 				if (s < start)
 					start = s;
@@ -1048,7 +1048,7 @@ void vm_unmap_aliases(void)
 		rcu_read_unlock();
 	}
 
-	__purge_vmap_area_lazy(&start, &end, 1, flush);
+	__purge_vmap_area_lazy(&start, &end, true, flush);
 }
 EXPORT_SYMBOL_GPL(vm_unmap_aliases);
 

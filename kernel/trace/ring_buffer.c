@@ -2018,7 +2018,7 @@ rb_add_time_stamp(struct ring_buffer_event *event, u64 delta)
 static void
 rb_update_event(struct ring_buffer_per_cpu *cpu_buffer,
 		struct ring_buffer_event *event, unsigned length,
-		int add_timestamp, u64 delta)
+		bool add_timestamp, u64 delta)
 {
 	/* Only a commit updates the timestamp */
 	if (unlikely(!rb_event_is_commit(cpu_buffer, event)))
@@ -2400,7 +2400,7 @@ rb_move_tail(struct ring_buffer_per_cpu *cpu_buffer,
 static struct ring_buffer_event *
 __rb_reserve_next(struct ring_buffer_per_cpu *cpu_buffer,
 		  unsigned long length, u64 ts,
-		  u64 delta, int add_timestamp)
+		  u64 delta, bool add_timestamp)
 {
 	struct buffer_page *tail_page;
 	struct ring_buffer_event *event;
@@ -2540,7 +2540,7 @@ rb_reserve_next_event(struct ring_buffer *buffer,
 	struct ring_buffer_event *event;
 	u64 ts, delta;
 	int nr_loops = 0;
-	int add_timestamp;
+	bool add_timestamp;
 	u64 diff;
 
 	rb_start_commit(cpu_buffer);
@@ -2562,7 +2562,7 @@ rb_reserve_next_event(struct ring_buffer *buffer,
 
 	length = rb_calculate_event_length(length);
  again:
-	add_timestamp = 0;
+	add_timestamp = false;
 	delta = 0;
 
 	/*
@@ -2600,7 +2600,7 @@ rb_reserve_next_event(struct ring_buffer *buffer,
 				  "If you just came from a suspend/resume,\n"
 				  "please switch to the trace global clock:\n"
 				  "  echo global > /sys/kernel/debug/tracing/trace_clock\n");
-			add_timestamp = 1;
+			add_timestamp = true;
 		}
 	}
 

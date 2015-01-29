@@ -1833,15 +1833,15 @@ int write_cache_pages(struct address_space *mapping,
 		      void *data)
 {
 	int ret = 0;
-	int done = 0;
+	bool done = false;
 	struct pagevec pvec;
 	int nr_pages;
 	pgoff_t uninitialized_var(writeback_index);
 	pgoff_t index;
 	pgoff_t end;		/* Inclusive */
 	pgoff_t done_index;
-	int cycled;
-	int range_whole = 0;
+	bool cycled;
+	bool range_whole = false;
 	int tag;
 
 	pagevec_init(&pvec, 0);
@@ -1849,16 +1849,16 @@ int write_cache_pages(struct address_space *mapping,
 		writeback_index = mapping->writeback_index; /* prev offset */
 		index = writeback_index;
 		if (index == 0)
-			cycled = 1;
+			cycled = true;
 		else
-			cycled = 0;
+			cycled = false;
 		end = -1;
 	} else {
 		index = wbc->range_start >> PAGE_CACHE_SHIFT;
 		end = wbc->range_end >> PAGE_CACHE_SHIFT;
 		if (wbc->range_start == 0 && wbc->range_end == LLONG_MAX)
-			range_whole = 1;
-		cycled = 1; /* ignore range_cyclic tests */
+			range_whole = true;
+		cycled = true; /* ignore range_cyclic tests */
 	}
 	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_writepages)
 		tag = PAGECACHE_TAG_TOWRITE;
@@ -1891,7 +1891,7 @@ retry:
 				 * can't be range_cyclic (1st pass) because
 				 * end == -1 in that case.
 				 */
-				done = 1;
+				done = true;
 				break;
 			}
 
@@ -1946,7 +1946,7 @@ continue_unlock:
 					 * writeout).
 					 */
 					done_index = page->index + 1;
-					done = 1;
+					done = true;
 					break;
 				}
 			}
@@ -1959,7 +1959,7 @@ continue_unlock:
 			 */
 			if (--wbc->nr_to_write <= 0 &&
 			    wbc->sync_mode == WB_SYNC_NONE) {
-				done = 1;
+				done = true;
 				break;
 			}
 		}
@@ -1972,7 +1972,7 @@ continue_unlock:
 		 * We hit the last page and there is more work to be done: wrap
 		 * back to the start of the file
 		 */
-		cycled = 1;
+		cycled = true;
 		index = 0;
 		end = writeback_index - 1;
 		goto retry;

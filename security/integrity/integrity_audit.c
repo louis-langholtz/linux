@@ -15,7 +15,7 @@
 #include <linux/audit.h>
 #include "integrity.h"
 
-static int integrity_audit_info;
+static bool integrity_audit_info;
 
 /* ima_audit_setup - enable informational auditing messages */
 static int __init integrity_audit_setup(char *str)
@@ -23,19 +23,19 @@ static int __init integrity_audit_setup(char *str)
 	unsigned long audit;
 
 	if (!kstrtoul(str, 0, &audit))
-		integrity_audit_info = audit ? 1 : 0;
+		integrity_audit_info = !!audit;
 	return 1;
 }
 __setup("integrity_audit=", integrity_audit_setup);
 
 void integrity_audit_msg(int audit_msgno, struct inode *inode,
 			 const unsigned char *fname, const char *op,
-			 const char *cause, int result, int audit_info)
+			 const char *cause, int result, bool audit_info)
 {
 	struct audit_buffer *ab;
 	char name[TASK_COMM_LEN];
 
-	if (!integrity_audit_info && audit_info == 1)	/* Skip info messages */
+	if (!integrity_audit_info && audit_info)	/* Skip info messages */
 		return;
 
 	ab = audit_log_start(current->audit_context, GFP_KERNEL, audit_msgno);
