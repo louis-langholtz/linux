@@ -35,12 +35,12 @@ static int cmp_range(const void *x1, const void *x2)
 {
 	const struct range *r1 = x1;
 	const struct range *r2 = x2;
-	int start1, start2;
 
-	start1 = r1->start >> 32;
-	start2 = r2->start >> 32;
-
-	return start1 - start2;
+	if (r1->start < r2->start)
+		return -1;
+	if (r1->start > r2->start)
+		return 1;
+	return 0;
 }
 
 #define MMCONF_UNIT (1ULL << FAM10H_MMIO_CONF_BASE_SHIFT)

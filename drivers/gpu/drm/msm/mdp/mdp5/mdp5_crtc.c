@@ -288,7 +288,11 @@ static int pstate_cmp(const void *a, const void *b)
 {
 	struct plane_state *pa = (struct plane_state *)a;
 	struct plane_state *pb = (struct plane_state *)b;
-	return pa->state->zpos - pb->state->zpos;
+	if (pa->state->zpos < pb->state->zpos)
+		return -1;
+	if (pa->state->zpos > pb->state->zpos)
+		return 1;
+	return 0;
 }
 
 static int mdp5_crtc_atomic_check(struct drm_crtc *crtc,
