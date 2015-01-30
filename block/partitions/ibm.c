@@ -60,7 +60,7 @@ static sector_t cchhb2blk(struct vtoc_cchhb *ptr, struct hd_geometry *geo)
 		ptr->b;
 }
 
-static int find_label(struct parsed_partitions *state,
+static bool find_label(struct parsed_partitions *state,
 		      dasd_information2_t *info,
 		      struct hd_geometry *geo,
 		      int blocksize,
@@ -73,7 +73,7 @@ static int find_label(struct parsed_partitions *state,
 	unsigned char *data;
 	sector_t testsect[3];
 	unsigned char temp[5];
-	int found = 0;
+	bool found = false;
 	int i, testcount;
 
 	/* There a three places where we may find a valid label:
@@ -119,7 +119,7 @@ static int find_label(struct parsed_partitions *state,
 			EBCASC(type, 4);
 			EBCASC(name, 6);
 			*labelsect = testsect[i];
-			found = 1;
+			found = true;
 			break;
 		}
 	}

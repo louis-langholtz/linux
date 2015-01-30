@@ -979,14 +979,14 @@ static inline void audit_free_context(struct audit_context *context)
 	kfree(context);
 }
 
-static int audit_log_pid_context(struct audit_context *context, pid_t pid,
+static bool audit_log_pid_context(struct audit_context *context, pid_t pid,
 				 kuid_t auid, kuid_t uid, unsigned int sessionid,
 				 u32 sid, char *comm)
 {
 	struct audit_buffer *ab;
 	char *ctx = NULL;
 	u32 len;
-	int rc = 0;
+	bool rc = false;
 
 	ab = audit_log_start(context, GFP_KERNEL, AUDIT_OBJ_PID);
 	if (!ab)
@@ -998,7 +998,7 @@ static int audit_log_pid_context(struct audit_context *context, pid_t pid,
 	if (sid) {
 		if (security_secid_to_secctx(sid, &ctx, &len)) {
 			audit_log_format(ab, " obj=(none)");
-			rc = 1;
+			rc = true;
 		} else {
 			audit_log_format(ab, " obj=%s", ctx);
 			security_release_secctx(ctx, len);

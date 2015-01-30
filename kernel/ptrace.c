@@ -404,9 +404,9 @@ static int ptrace_traceme(void)
 /*
  * Called with irqs disabled, returns true if childs should reap themselves.
  */
-static int ignoring_children(struct sighand_struct *sigh)
+static bool ignoring_children(struct sighand_struct *sigh)
 {
-	int ret;
+	bool ret;
 	spin_lock(&sigh->siglock);
 	ret = (sigh->action[SIGCHLD-1].sa.sa_handler == SIG_IGN) ||
 	      (sigh->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDWAIT);
