@@ -1023,13 +1023,13 @@ EXPORT_SYMBOL(bio_copy_data);
 
 struct bio_map_data {
 	int nr_sgvecs;
-	int is_our_pages;
+	bool is_our_pages;
 	struct sg_iovec sgvecs[];
 };
 
 static void bio_set_map_data(struct bio_map_data *bmd, struct bio *bio,
 			     const struct sg_iovec *iov, int iov_count,
-			     int is_our_pages)
+			     bool is_our_pages)
 {
 	memcpy(bmd->sgvecs, iov, sizeof(struct sg_iovec) * iov_count);
 	bmd->nr_sgvecs = iov_count;
@@ -1048,7 +1048,7 @@ static struct bio_map_data *bio_alloc_map_data(unsigned int iov_count,
 }
 
 static int __bio_copy_iov(struct bio *bio, const struct sg_iovec *iov, int iov_count,
-			  int to_user, int from_user, int do_free_page)
+			  bool to_user, bool from_user, bool do_free_page)
 {
 	int ret = 0, i;
 	struct bio_vec *bvec;
@@ -1119,7 +1119,7 @@ int bio_uncopy_user(struct bio *bio)
 		if (current->mm)
 			ret = __bio_copy_iov(bio, bmd->sgvecs, bmd->nr_sgvecs,
 					     bio_data_dir(bio) == READ,
-					     0, bmd->is_our_pages);
+					     false, bmd->is_our_pages);
 		else if (bmd->is_our_pages)
 			bio_for_each_segment_all(bvec, bio, i)
 				__free_page(bvec->bv_page);
@@ -1238,12 +1238,12 @@ struct bio *bio_copy_user_iov(struct request_queue *q,
 	 */
 	if ((!write_to_vm && (!map_data || !map_data->null_mapped)) ||
 	    (map_data && map_data->from_user)) {
-		ret = __bio_copy_iov(bio, iov, iov_count, 0, 1, 0);
+		ret = __bio_copy_iov(bio, iov, iov_count, false, true, false);
 		if (ret)
 			goto cleanup;
 	}
 
-	bio_set_map_data(bmd, bio, iov, iov_count, map_data ? 0 : 1);
+	bio_set_map_data(bmd, bio, iov, iov_count, !map_data);
 	return bio;
 cleanup:
 	if (!map_data)
