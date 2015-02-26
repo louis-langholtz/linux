@@ -283,35 +283,6 @@ int blk_rq_map_sg(struct request_queue *q, struct request *rq,
 }
 EXPORT_SYMBOL(blk_rq_map_sg);
 
-/**
- * blk_bio_map_sg - map a bio to a scatterlist
- * @q: request_queue in question
- * @bio: bio being mapped
- * @sglist: scatterlist being mapped
- *
- * Note:
- *    Caller must make sure sg can hold bio->bi_phys_segments entries
- *
- * Will return the number of sg entries setup
- */
-int blk_bio_map_sg(struct request_queue *q, struct bio *bio,
-		   struct scatterlist *sglist)
-{
-	struct scatterlist *sg = NULL;
-	int nsegs;
-	struct bio *next = bio->bi_next;
-	bio->bi_next = NULL;
-
-	nsegs = __blk_bios_map_sg(q, bio, sglist, &sg);
-	bio->bi_next = next;
-	if (sg)
-		sg_mark_end(sg);
-
-	BUG_ON(bio->bi_phys_segments && nsegs > bio->bi_phys_segments);
-	return nsegs;
-}
-EXPORT_SYMBOL(blk_bio_map_sg);
-
 static inline bool ll_new_hw_segment(struct request_queue *q,
 				    struct request *req,
 				    struct bio *bio)
@@ -338,7 +309,7 @@ no_merge:
 	return false;
 }
 
-int ll_back_merge_fn(struct request_queue *q, struct request *req,
+bool ll_back_merge_fn(struct request_queue *q, struct request *req,
 		     struct bio *bio)
 {
 	if (blk_rq_sectors(req) + bio_sectors(bio) >
@@ -346,7 +317,7 @@ int ll_back_merge_fn(struct request_queue *q, struct request *req,
 		req->cmd_flags |= REQ_NOMERGE;
 		if (req == q->last_merge)
 			q->last_merge = NULL;
-		return 0;
+		return false;
 	}
 	if (!bio_flagged(req->biotail, BIO_SEG_VALID))
 		blk_recount_segments(q, req->biotail);
@@ -356,7 +327,7 @@ int ll_back_merge_fn(struct request_queue *q, struct request *req,
 	return ll_new_hw_segment(q, req, bio);
 }
 
-int ll_front_merge_fn(struct request_queue *q, struct request *req,
+bool ll_front_merge_fn(struct request_queue *q, struct request *req,
 		      struct bio *bio)
 {
 	if (blk_rq_sectors(req) + bio_sectors(bio) >
@@ -364,7 +335,7 @@ int ll_front_merge_fn(struct request_queue *q, struct request *req,
 		req->cmd_flags |= REQ_NOMERGE;
 		if (req == q->last_merge)
 			q->last_merge = NULL;
-		return 0;
+		return false;
 	}
 	if (!bio_flagged(bio, BIO_SEG_VALID))
 		blk_recount_segments(q, bio);
@@ -385,6 +356,14 @@ static bool req_no_special_merge(struct request *req)
 	return !q->mq_ops && req->special;
 }
 
+static bool req_gap_to_prev(struct request *req, struct request *next)
+{
+	struct bio *prev = req->biotail;
+
+	return bvec_gap_to_prev(&prev->bi_io_vec[prev->bi_vcnt - 1],
+				next->bio->bi_io_vec[0].bv_offset);
+}
+
 static bool ll_merge_requests_fn(struct request_queue *q, struct request *req,
 				struct request *next)
 {
@@ -397,6 +376,10 @@ static bool ll_merge_requests_fn(struct request_queue *q, struct request *req,
 	 * requests.  Can't merge them if they are.
 	 */
 	if (req_no_special_merge(req) || req_no_special_merge(next))
+		return false;
+
+	if (test_bit(QUEUE_FLAG_SG_GAPS, &q->queue_flags) &&
+	    req_gap_to_prev(req, next))
 		return false;
 
 	/*
@@ -496,7 +479,7 @@ static int attempt_merge(struct request_queue *q, struct request *req,
 	    || req_no_special_merge(next))
 		return 0;
 
-	if (req->cmd_flags & REQ_WRITE_SAME &&
+	if ((req->cmd_flags & REQ_WRITE_SAME) &&
 	    !blk_write_same_mergeable(req->bio, next->bio))
 		return 0;
 
@@ -515,7 +498,7 @@ static int attempt_merge(struct request_queue *q, struct request *req,
 	 * makes sure that all involved bios have mixable attributes
 	 * set properly.
 	 */
-	if ((req->cmd_flags | next->cmd_flags) & REQ_MIXED_MERGE ||
+	if (((req->cmd_flags | next->cmd_flags) & REQ_MIXED_MERGE) ||
 	    (req->cmd_flags & REQ_FAILFAST_MASK) !=
 	    (next->cmd_flags & REQ_FAILFAST_MASK)) {
 		blk_rq_set_mixed_merge(req);
@@ -602,7 +585,7 @@ bool blk_rq_merge_ok(struct request *rq, struct bio *bio)
 		return false;
 
 	/* must be using the same buffer */
-	if (rq->cmd_flags & REQ_WRITE_SAME &&
+	if ((rq->cmd_flags & REQ_WRITE_SAME) &&
 	    !blk_write_same_mergeable(rq->bio, bio))
 		return false;
 

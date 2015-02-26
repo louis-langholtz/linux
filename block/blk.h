@@ -167,20 +167,20 @@ static inline void elv_deactivate_rq(struct request_queue *q, struct request *rq
 }
 
 #ifdef CONFIG_FAIL_IO_TIMEOUT
-int blk_should_fake_timeout(struct request_queue *);
+bool blk_should_fake_timeout(struct request_queue *);
 ssize_t part_timeout_show(struct device *, struct device_attribute *, char *);
 ssize_t part_timeout_store(struct device *, struct device_attribute *,
 				const char *, size_t);
 #else
-static inline int blk_should_fake_timeout(struct request_queue *q)
+static inline bool blk_should_fake_timeout(struct request_queue *q)
 {
-	return 0;
+	return false;
 }
 #endif
 
-int ll_back_merge_fn(struct request_queue *q, struct request *req,
+bool ll_back_merge_fn(struct request_queue *q, struct request *req,
 		     struct bio *bio);
-int ll_front_merge_fn(struct request_queue *q, struct request *req, 
+bool ll_front_merge_fn(struct request_queue *q, struct request *req,
 		      struct bio *bio);
 int attempt_back_merge(struct request_queue *q, struct request *rq);
 int attempt_front_merge(struct request_queue *q, struct request *rq);

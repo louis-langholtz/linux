@@ -1246,7 +1246,7 @@ struct sched_dl_entity {
 	 * @dl_yielded tells if task gave up the cpu before consuming
 	 * all its available runtime during the last job.
 	 */
-	bool dl_throttled, dl_new, dl_boosted, dl_yielded;
+	int dl_throttled, dl_new, dl_boosted, dl_yielded;
 
 	/*
 	 * Bandwidth enforcement timer. Each -deadline task has its
@@ -1369,6 +1369,8 @@ struct task_struct {
 #endif
 
 	unsigned long atomic_flags; /* Flags needing atomic access. */
+
+	struct restart_block restart_block;
 
 	pid_t pid;
 	pid_t tgid;
@@ -1662,6 +1664,9 @@ struct task_struct {
 	unsigned long timer_slack_ns;
 	unsigned long default_timer_slack_ns;
 
+#ifdef CONFIG_KASAN
+	unsigned int kasan_depth;
+#endif
 #ifdef CONFIG_FUNCTION_GRAPH_TRACER
 	/* Index of current stored address in ret_stack */
 	int curr_ret_stack;
@@ -2145,6 +2150,7 @@ extern unsigned long long notrace sched_clock(void);
  */
 extern u64 cpu_clock(int cpu);
 extern u64 local_clock(void);
+extern u64 running_clock(void);
 extern u64 sched_clock_cpu(int cpu);
 
 
