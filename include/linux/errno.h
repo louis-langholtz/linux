@@ -29,4 +29,10 @@
 #define EJUKEBOX	528	/* Request initiated, but will not complete before timeout */
 #define EIOCBQUEUED	529	/* iocb queued, will get completion event */
 
+#ifndef __ASSEMBLY__
+#ifndef __STDC_LIB_EXT1__
+typedef int errno_t;
+#endif
+#endif
+
 #endif

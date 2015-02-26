@@ -872,7 +872,7 @@ int vfs_open(const struct path *path, struct file *filp,
 }
 EXPORT_SYMBOL(vfs_open);
 
-static inline int build_open_flags(int flags, umode_t mode, struct open_flags *op)
+static inline errno_t build_open_flags(int flags, umode_t mode, struct open_flags *op)
 {
 	int lookup_flags = 0;
 	int acc_mode;
