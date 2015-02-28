@@ -1500,7 +1500,7 @@ static int strict_iomem_checks;
 int iomem_is_exclusive(u64 addr)
 {
 	struct resource *p = &iomem_resource;
-	int err = 0;
+	bool err = false;
 	loff_t l;
 	int size = PAGE_SIZE;
 
@@ -1519,9 +1519,9 @@ int iomem_is_exclusive(u64 addr)
 			break;
 		if (p->end < addr)
 			continue;
-		if (p->flags & IORESOURCE_BUSY &&
-		     p->flags & IORESOURCE_EXCLUSIVE) {
-			err = 1;
+		if ((p->flags & IORESOURCE_BUSY) &&
+		     (p->flags & IORESOURCE_EXCLUSIVE)) {
+			err = true;
 			break;
 		}
 	}

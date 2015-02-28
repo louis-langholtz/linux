@@ -240,7 +240,7 @@ static bool will_become_orphaned_pgrp(struct pid *pgrp,
 
 int is_current_pgrp_orphaned(void)
 {
-	int retval;
+	bool retval;
 
 	read_lock(&tasklist_lock);
 	retval = will_become_orphaned_pgrp(task_pgrp(current), NULL);

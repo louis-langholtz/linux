@@ -353,18 +353,18 @@ static int __clocksource_watchdog_kthread(void)
 	struct clocksource *cs, *tmp;
 	unsigned long flags;
 	LIST_HEAD(unstable);
-	int select = 0;
+	bool select = false;
 
 	spin_lock_irqsave(&watchdog_lock, flags);
 	list_for_each_entry_safe(cs, tmp, &watchdog_list, wd_list) {
 		if (cs->flags & CLOCK_SOURCE_UNSTABLE) {
 			list_del_init(&cs->wd_list);
 			list_add(&cs->wd_list, &unstable);
-			select = 1;
+			select = true;
 		}
 		if (cs->flags & CLOCK_SOURCE_RESELECT) {
 			cs->flags &= ~CLOCK_SOURCE_RESELECT;
-			select = 1;
+			select = true;
 		}
 	}
 	/* Check if the watchdog timer needs to be stopped. */

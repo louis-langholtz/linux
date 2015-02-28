@@ -94,7 +94,7 @@ int tick_switch_to_oneshot(void (*handler)(struct clock_event_device *))
 int tick_oneshot_mode_active(void)
 {
 	unsigned long flags;
-	int ret;
+	bool ret;
 
 	local_irq_save(flags);
 	ret = __this_cpu_read(tick_cpu_device.mode) == TICKDEV_MODE_ONESHOT;

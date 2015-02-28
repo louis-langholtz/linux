@@ -81,7 +81,7 @@ static char *kdb_name_table[100];	/* arbitrary size */
  */
 int kdbnearsym(unsigned long addr, kdb_symtab_t *symtab)
 {
-	int ret = 0;
+	bool ret = false;
 	unsigned long symbolsize = 0;
 	unsigned long offset = 0;
 #define knt1_size 128		/* must be >= kallsyms table size */
@@ -149,7 +149,7 @@ int kdbnearsym(unsigned long addr, kdb_symtab_t *symtab)
 		symtab->mod_name = "kernel";
 	if (KDB_DEBUG(AR))
 		kdb_printf("kdbnearsym: returns %d symtab->sym_start=0x%lx, "
-		   "symtab->mod_name=%p, symtab->sym_name=%p (%s)\n", ret,
+		   "symtab->mod_name=%p, symtab->sym_name=%p (%s)\n", (int) ret,
 		   symtab->sym_start, symtab->mod_name, symtab->sym_name,
 		   symtab->sym_name);
 

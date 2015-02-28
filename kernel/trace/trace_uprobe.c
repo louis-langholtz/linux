@@ -1078,7 +1078,7 @@ static bool uprobe_perf_filter(struct uprobe_consumer *uc,
 				enum uprobe_filter_ctx ctx, struct mm_struct *mm)
 {
 	struct trace_uprobe *tu;
-	int ret;
+	bool ret;
 
 	tu = container_of(uc, struct trace_uprobe, consumer);
 	read_lock(&tu->filter.rwlock);

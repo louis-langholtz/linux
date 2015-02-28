@@ -1049,11 +1049,11 @@ NOKPROBE_SYMBOL(aggr_fault_handler);
 static int aggr_break_handler(struct kprobe *p, struct pt_regs *regs)
 {
 	struct kprobe *cur = __this_cpu_read(kprobe_instance);
-	int ret = 0;
+	bool ret = false;
 
 	if (cur && cur->break_handler) {
 		if (cur->break_handler(cur, regs))
-			ret = 1;
+			ret = true;
 	}
 	reset_kprobe_instance();
 	return ret;

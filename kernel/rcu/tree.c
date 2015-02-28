@@ -2894,9 +2894,9 @@ EXPORT_SYMBOL_GPL(kfree_call_rcu);
  * when there was in fact only one the whole time, as this just adds
  * some overhead: RCU still operates correctly.
  */
-static inline int rcu_blocking_is_gp(void)
+static inline bool rcu_blocking_is_gp(void)
 {
-	int ret;
+	bool ret;
 
 	might_sleep();  /* Check for RCU read-side critical section. */
 	preempt_disable();

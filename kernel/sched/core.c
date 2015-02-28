@@ -1481,17 +1481,17 @@ ttwu_do_activate(struct rq *rq, struct task_struct *p, int wake_flags)
  * since all we need to do is flip p->state to TASK_RUNNING, since
  * the task is still ->on_rq.
  */
-static int ttwu_remote(struct task_struct *p, int wake_flags)
+static bool ttwu_remote(struct task_struct *p, int wake_flags)
 {
 	struct rq *rq;
-	int ret = 0;
+	bool ret = false;
 
 	rq = __task_rq_lock(p);
 	if (task_on_rq_queued(p)) {
 		/* check_preempt_curr() may use rq clock */
 		update_rq_clock(rq);
 		ttwu_do_wakeup(rq, p, wake_flags);
-		ret = 1;
+		ret = true;
 	}
 	__task_rq_unlock(rq);
 
@@ -4224,7 +4224,7 @@ EXPORT_SYMBOL(_cond_resched);
 int __cond_resched_lock(spinlock_t *lock)
 {
 	bool resched = should_resched();
-	int ret = 0;
+	bool ret = false;
 
 	lockdep_assert_held(lock);
 
@@ -4234,7 +4234,7 @@ int __cond_resched_lock(spinlock_t *lock)
 			preempt_schedule_common();
 		else
 			cpu_relax();
-		ret = 1;
+		ret = true;
 		spin_lock(lock);
 	}
 	return ret;

@@ -1025,16 +1025,16 @@ static int rb_head_page_replace(struct buffer_page *old,
 /*
  * rb_tail_page_update - move the tail page forward
  *
- * Returns 1 if moved tail page, 0 if someone else did.
+ * Returns true if moved tail page, false if someone else did.
  */
-static int rb_tail_page_update(struct ring_buffer_per_cpu *cpu_buffer,
+static bool rb_tail_page_update(struct ring_buffer_per_cpu *cpu_buffer,
 			       struct buffer_page *tail_page,
 			       struct buffer_page *next_page)
 {
 	struct buffer_page *old_tail;
 	unsigned long old_entries;
 	unsigned long old_write;
-	int ret = 0;
+	bool ret = false;
 
 	/*
 	 * The tail page now needs to be moved forward.
@@ -1088,7 +1088,7 @@ static int rb_tail_page_update(struct ring_buffer_per_cpu *cpu_buffer,
 				   tail_page, next_page);
 
 		if (old_tail == tail_page)
-			ret = 1;
+			ret = true;
 	}
 
 	return ret;

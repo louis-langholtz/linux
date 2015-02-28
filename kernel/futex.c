@@ -1812,13 +1812,13 @@ static inline void queue_me(struct futex_q *q, struct futex_hash_bucket *hb)
  * be paired with exactly one earlier call to queue_me().
  *
  * Return:
- *   1 - if the futex_q was still queued (and we removed unqueued it);
- *   0 - if the futex_q was already removed by the waking thread
+ *   true - if the futex_q was still queued (and we removed unqueued it);
+ *   false - if the futex_q was already removed by the waking thread
  */
-static int unqueue_me(struct futex_q *q)
+static bool unqueue_me(struct futex_q *q)
 {
 	spinlock_t *lock_ptr;
-	int ret = 0;
+	bool ret = false;
 
 	/* In the common case we don't take the spinlock, which is nice. */
 retry:
@@ -1848,7 +1848,7 @@ retry:
 		BUG_ON(q->pi_state);
 
 		spin_unlock(lock_ptr);
-		ret = 1;
+		ret = true;
 	}
 
 	drop_futex_key_refs(&q->key);

@@ -560,7 +560,7 @@ int can_request_irq(unsigned int irq, unsigned long irqflags)
 {
 	unsigned long flags;
 	struct irq_desc *desc = irq_get_desc_lock(irq, &flags, 0);
-	int canrequest = 0;
+	bool canrequest = false;
 
 	if (!desc)
 		return 0;
@@ -568,7 +568,7 @@ int can_request_irq(unsigned int irq, unsigned long irqflags)
 	if (irq_settings_can_request(desc)) {
 		if (!desc->action ||
 		    irqflags & desc->action->flags & IRQF_SHARED)
-			canrequest = 1;
+			canrequest = true;
 	}
 	irq_put_desc_unlock(desc, flags);
 	return canrequest;
