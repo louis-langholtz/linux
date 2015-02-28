@@ -1379,7 +1379,7 @@ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
 		 pmd_t *pmd, unsigned long addr)
 {
 	spinlock_t *ptl;
-	int ret = 0;
+	bool ret = false;
 
 	if (__pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
 		struct page *page;
@@ -1410,7 +1410,7 @@ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
 			tlb_remove_page(tlb, page);
 		}
 		pte_free(tlb->mm, pgtable);
-		ret = 1;
+		ret = true;
 	}
 	return ret;
 }

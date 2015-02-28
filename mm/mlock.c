@@ -845,12 +845,12 @@ static DEFINE_SPINLOCK(shmlock_user_lock);
 int user_shm_lock(size_t size, struct user_struct *user)
 {
 	unsigned long lock_limit, locked;
-	int allowed = 0;
+	bool allowed = false;
 
 	locked = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
 	lock_limit = rlimit(RLIMIT_MEMLOCK);
 	if (lock_limit == RLIM_INFINITY)
-		allowed = 1;
+		allowed = true;
 	lock_limit >>= PAGE_SHIFT;
 	spin_lock(&shmlock_user_lock);
 	if (!allowed &&
@@ -858,7 +858,7 @@ int user_shm_lock(size_t size, struct user_struct *user)
 		goto out;
 	get_uid(user);
 	user->locked_shm += locked;
-	allowed = 1;
+	allowed = true;
 out:
 	spin_unlock(&shmlock_user_lock);
 	return allowed;

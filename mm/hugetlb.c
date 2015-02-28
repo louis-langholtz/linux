@@ -999,16 +999,16 @@ static struct page *alloc_fresh_huge_page_node(struct hstate *h, int nid)
 	return page;
 }
 
-static int alloc_fresh_huge_page(struct hstate *h, nodemask_t *nodes_allowed)
+static bool alloc_fresh_huge_page(struct hstate *h, nodemask_t *nodes_allowed)
 {
 	struct page *page;
 	int nr_nodes, node;
-	int ret = 0;
+	bool ret = false;
 
 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
 		page = alloc_fresh_huge_page_node(h, node);
 		if (page) {
-			ret = 1;
+			ret = true;
 			break;
 		}
 	}
@@ -1027,11 +1027,11 @@ static int alloc_fresh_huge_page(struct hstate *h, nodemask_t *nodes_allowed)
  * balanced over allowed nodes.
  * Called with hugetlb_lock locked.
  */
-static int free_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed,
+static bool free_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed,
 							 bool acct_surplus)
 {
 	int nr_nodes, node;
-	int ret = 0;
+	bool ret = false;
 
 	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
 		/*
@@ -1051,7 +1051,7 @@ static int free_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed,
 				h->surplus_huge_pages_node[node]--;
 			}
 			update_and_free_page(h, page);
-			ret = 1;
+			ret = true;
 			break;
 		}
 	}
@@ -3135,7 +3135,7 @@ int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	struct page *pagecache_page = NULL;
 	struct hstate *h = hstate_vma(vma);
 	struct address_space *mapping;
-	int need_wait_lock = 0;
+	bool need_wait_lock = false;
 
 	address &= huge_page_mask(h);
 
@@ -3216,7 +3216,7 @@ int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	page = pte_page(entry);
 	if (page != pagecache_page)
 		if (!trylock_page(page)) {
-			need_wait_lock = 1;
+			need_wait_lock = true;
 			goto out_ptl;
 		}
 
