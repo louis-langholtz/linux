@@ -2647,7 +2647,7 @@ int mpol_parse_str(char *str, struct mempolicy **mpol)
 	nodemask_t nodes;
 	char *nodelist = strchr(str, ':');
 	char *flags = strchr(str, '=');
-	int err = 1;
+	bool err = true;
 
 	if (nodelist) {
 		/* NUL-terminate mode or flags string */
@@ -2703,7 +2703,7 @@ int mpol_parse_str(char *str, struct mempolicy **mpol)
 		 * Insist on a empty nodelist
 		 */
 		if (!nodelist)
-			err = 0;
+			err = false;
 		goto out;
 	case MPOL_BIND:
 		/*
@@ -2748,7 +2748,7 @@ int mpol_parse_str(char *str, struct mempolicy **mpol)
 	 */
 	new->w.user_nodemask = nodes;
 
-	err = 0;
+	err = false;
 
 out:
 	/* Restore string for error message */

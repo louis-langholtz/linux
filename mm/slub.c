@@ -3440,7 +3440,7 @@ int __kmem_cache_shrink(struct kmem_cache *s, bool deactivate)
 	struct list_head discard;
 	struct list_head promote[SHRINK_PROMOTE_MAX];
 	unsigned long flags;
-	int ret = 0;
+	bool ret = false;
 
 	if (deactivate) {
 		/*
@@ -3501,7 +3501,7 @@ int __kmem_cache_shrink(struct kmem_cache *s, bool deactivate)
 			discard_slab(s, page);
 
 		if (slabs_node(s, node))
-			ret = 1;
+			ret = true;
 	}
 
 	return ret;
