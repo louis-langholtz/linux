@@ -123,7 +123,7 @@ static inline int debug_locks_off_graph_unlock(void)
 	return ret;
 }
 
-static bool lockdep_initialized;
+static int lockdep_initialized;
 
 unsigned long nr_list_entries;
 static struct lock_list list_entries[MAX_LOCKDEP_ENTRIES];
@@ -3991,7 +3991,7 @@ void lockdep_init(void)
 	for (i = 0; i < CHAINHASH_SIZE; i++)
 		INIT_LIST_HEAD(chainhash_table + i);
 
-	lockdep_initialized = true;
+	lockdep_initialized = 1;
 }
 
 void __init lockdep_info(void)

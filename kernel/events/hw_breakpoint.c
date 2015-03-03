@@ -69,7 +69,7 @@ static struct bp_cpuinfo *get_bp_info(int cpu, enum bp_type_idx type)
 /* Keep track of the breakpoints attached to tasks */
 static LIST_HEAD(bp_task_head);
 
-static bool constraints_initialized;
+static int constraints_initialized;
 
 /* Gather the number of total pinned and un-pinned bp in a cpuset */
 struct bp_busy_slots {
@@ -635,7 +635,7 @@ int __init init_hw_breakpoint(void)
 		}
 	}
 
-	constraints_initialized = true;
+	constraints_initialized = 1;
 
 	perf_pmu_register(&perf_breakpoint, "breakpoint", PERF_TYPE_BREAKPOINT);
 
