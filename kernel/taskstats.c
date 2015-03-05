@@ -38,7 +38,7 @@
 #define TASKSTATS_CPUMASK_MAXLEN	(100+6*NR_CPUS)
 
 static DEFINE_PER_CPU(__u32, taskstats_seqnum);
-static bool family_registered;
+static int family_registered;
 struct kmem_cache *taskstats_cache;
 
 static struct genl_family family = {
@@ -698,7 +698,7 @@ static int __init taskstats_init(void)
 	if (rc)
 		return rc;
 
-	family_registered = true;
+	family_registered = 1;
 	pr_info("registered taskstats version %d\n", TASKSTATS_GENL_VERSION);
 	return 0;
 }

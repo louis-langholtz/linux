@@ -433,12 +433,12 @@ struct rt_rq {
 #ifdef CONFIG_SMP
 	unsigned long rt_nr_migratory;
 	unsigned long rt_nr_total;
-	bool overloaded;
+	int overloaded;
 	struct plist_head pushable_tasks;
 #endif
-	bool rt_queued;
+	int rt_queued;
 
-	bool rt_throttled;
+	int rt_throttled;
 	u64 rt_time;
 	u64 rt_runtime;
 	/* Nests inside the rq lock: */
@@ -464,7 +464,7 @@ struct dl_rq {
 	/*
 	 * Deadline values of the currently executing and the
 	 * earliest ready task on this rq. Caching these facilitates
-	 * the decision wether or not a ready but not running task
+	 * the decision whether or not a ready but not running task
 	 * should migrate somewhere else.
 	 */
 	struct {
@@ -473,7 +473,7 @@ struct dl_rq {
 	} earliest_dl;
 
 	unsigned long dl_nr_migratory;
-	bool overloaded;
+	int overloaded;
 
 	/*
 	 * Tasks on this rq that can be pushed away. They are kept in
@@ -600,13 +600,13 @@ struct rq {
 
 	unsigned char idle_balance;
 	/* For active balancing */
-	bool post_schedule;
-	bool active_balance;
+	int post_schedule;
+	int active_balance;
 	int push_cpu;
 	struct cpu_stop_work active_balance_work;
 	/* cpu of this runqueue: */
 	int cpu;
-	bool online;
+	int online;
 
 	struct list_head cfs_tasks;
 
@@ -635,7 +635,7 @@ struct rq {
 
 #ifdef CONFIG_SCHED_HRTICK
 #ifdef CONFIG_SMP
-	bool hrtick_csd_pending;
+	int hrtick_csd_pending;
 	struct call_single_data hrtick_csd;
 #endif
 	struct hrtimer hrtick_timer;
@@ -1004,7 +1004,7 @@ static inline bool task_current(struct rq *rq, struct task_struct *p)
 static inline bool task_running(struct rq *rq, struct task_struct *p)
 {
 #ifdef CONFIG_SMP
-	return p->on_cpu;
+	return !!(p->on_cpu);
 #else
 	return task_current(rq, p);
 #endif
@@ -1038,7 +1038,7 @@ static inline void prepare_lock_switch(struct rq *rq, struct task_struct *next)
 	 * SMP rebalancing from interrupt is the only thing that cares
 	 * here.
 	 */
-	next->on_cpu = true;
+	next->on_cpu = 1;
 #endif
 }
 
@@ -1051,7 +1051,7 @@ static inline void finish_lock_switch(struct rq *rq, struct task_struct *prev)
 	 * finished.
 	 */
 	smp_wmb();
-	prev->on_cpu = false;
+	prev->on_cpu = 0;
 #endif
 #ifdef CONFIG_DEBUG_SPINLOCK
 	/* this is a valid case when another task releases the spinlock */

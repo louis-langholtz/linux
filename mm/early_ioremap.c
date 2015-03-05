@@ -17,11 +17,11 @@
 #include <asm/fixmap.h>
 
 #ifdef CONFIG_MMU
-static bool early_ioremap_debug __initdata;
+static int early_ioremap_debug __initdata;
 
 static int __init early_ioremap_debug_setup(char *str)
 {
-	early_ioremap_debug = true;
+	early_ioremap_debug = 1;
 
 	return 0;
 }

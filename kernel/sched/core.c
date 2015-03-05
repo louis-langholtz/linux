@@ -369,7 +369,7 @@ static void __hrtick_start(void *arg)
 
 	raw_spin_lock(&rq->lock);
 	__hrtick_restart(rq);
-	rq->hrtick_csd_pending = false;
+	rq->hrtick_csd_pending = 0;
 	raw_spin_unlock(&rq->lock);
 }
 
@@ -397,7 +397,7 @@ void hrtick_start(struct rq *rq, u64 delay)
 		__hrtick_restart(rq);
 	} else if (!rq->hrtick_csd_pending) {
 		smp_call_function_single_async(cpu_of(rq), &rq->hrtick_csd);
-		rq->hrtick_csd_pending = true;
+		rq->hrtick_csd_pending = 1;
 	}
 }
 
@@ -449,7 +449,7 @@ static inline void init_hrtick(void)
 static void init_rq_hrtick(struct rq *rq)
 {
 #ifdef CONFIG_SMP
-	rq->hrtick_csd_pending = false;
+	rq->hrtick_csd_pending = 0;
 
 	rq->hrtick_csd.flags = 0;
 	rq->hrtick_csd.func = __hrtick_start;
@@ -1937,7 +1937,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 		memset(&p->sched_info, 0, sizeof(p->sched_info));
 #endif
 #if defined(CONFIG_SMP)
-	p->on_cpu = false;
+	p->on_cpu = 0;
 #endif
 	init_task_preempt_count(p);
 #ifdef CONFIG_SMP
@@ -2243,7 +2243,7 @@ static inline void post_schedule(struct rq *rq)
 			rq->curr->sched_class->post_schedule(rq);
 		raw_spin_unlock_irqrestore(&rq->lock, flags);
 
-		rq->post_schedule = false;
+		rq->post_schedule = 0;
 	}
 }
 
@@ -3021,21 +3021,21 @@ void rt_mutex_setprio(struct task_struct *p, int prio)
 		struct task_struct *pi_task = rt_mutex_get_top_task(p);
 		if (!dl_prio(p->normal_prio) ||
 		    (pi_task && dl_entity_preempt(&pi_task->dl, &p->dl))) {
-			p->dl.dl_boosted = true;
-			p->dl.dl_throttled = false;
+			p->dl.dl_boosted = 1;
+			p->dl.dl_throttled = 0;
 			enqueue_flag = ENQUEUE_REPLENISH;
 		} else
-			p->dl.dl_boosted = false;
+			p->dl.dl_boosted = 0;
 		p->sched_class = &dl_sched_class;
 	} else if (rt_prio(prio)) {
 		if (dl_prio(oldprio))
-			p->dl.dl_boosted = false;
+			p->dl.dl_boosted = 0;
 		if (oldprio < prio)
 			enqueue_flag = ENQUEUE_HEAD;
 		p->sched_class = &rt_sched_class;
 	} else {
 		if (dl_prio(oldprio))
-			p->dl.dl_boosted = false;
+			p->dl.dl_boosted = 0;
 		p->sched_class = &fair_sched_class;
 	}
 
@@ -4605,7 +4605,7 @@ void init_idle(struct task_struct *idle, int cpu)
 	rq->curr = rq->idle = idle;
 	idle->on_rq = TASK_ON_RQ_QUEUED;
 #if defined(CONFIG_SMP)
-	idle->on_cpu = true;
+	idle->on_cpu = 1;
 #endif
 	raw_spin_unlock_irqrestore(&rq->lock, flags);
 
@@ -5210,7 +5210,7 @@ static void set_rq_online(struct rq *rq)
 		const struct sched_class *class;
 
 		cpumask_set_cpu(rq->cpu, rq->rd->online);
-		rq->online = true;
+		rq->online = 1;
 
 		for_each_class(class) {
 			if (class->rq_online)
@@ -5230,7 +5230,7 @@ static void set_rq_offline(struct rq *rq)
 		}
 
 		cpumask_clear_cpu(rq->cpu, rq->rd->online);
-		rq->online = false;
+		rq->online = 0;
 	}
 }
 
@@ -7202,12 +7202,12 @@ void __init sched_init(void)
 		rq->sd = NULL;
 		rq->rd = NULL;
 		rq->cpu_capacity = SCHED_CAPACITY_SCALE;
-		rq->post_schedule = false;
-		rq->active_balance = false;
+		rq->post_schedule = 0;
+		rq->active_balance = 0;
 		rq->next_balance = jiffies;
 		rq->push_cpu = 0;
 		rq->cpu = i;
-		rq->online = false;
+		rq->online = 0;
 		rq->idle_stamp = 0;
 		rq->avg_idle = 2*sysctl_sched_migration_cost;
 		rq->max_idle_balance_cost = sysctl_sched_migration_cost;

@@ -1225,12 +1225,12 @@ struct sched_dl_entity {
 
 	/*
 	 * Actual scheduling parameters. Initialized with the values above,
-	 * they are continously updated during task execution. Note that
+	 * they are continuously updated during task execution. Note that
 	 * the remaining runtime could be < 0 in case we are in overrun.
 	 */
 	s64 runtime;		/* remaining runtime for this instance	*/
 	u64 deadline;		/* absolute deadline for this instance	*/
-	unsigned int flags;	/* specifying the scheduler behaviour	*/
+	unsigned int flags;	/* specifying the scheduler behavior	*/
 
 	/*
 	 * Some bool flags:
@@ -1247,7 +1247,7 @@ struct sched_dl_entity {
 	 * outside bandwidth enforcement mechanism (but only until we
 	 * exit the critical section);
 	 *
-	 * @dl_yielded tells if task gave up the cpu before consuming
+	 * @dl_yielded tells if task gave up the CPU before consuming
 	 * all its available runtime during the last job.
 	 */
 	int dl_throttled, dl_new, dl_boosted, dl_yielded;
@@ -1284,7 +1284,7 @@ struct task_struct {
 
 #ifdef CONFIG_SMP
 	struct llist_node wake_entry;
-	bool on_cpu;
+	int on_cpu;
 	struct task_struct *last_wakee;
 	unsigned long wakee_flips;
 	unsigned long wakee_flip_decay_ts;

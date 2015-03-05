@@ -102,7 +102,7 @@ static struct clocksource *curr_clocksource;
 static LIST_HEAD(clocksource_list);
 static DEFINE_MUTEX(clocksource_mutex);
 static char override_name[CS_NAME_LEN];
-static bool finished_booting;
+static int finished_booting;
 
 #ifdef CONFIG_CLOCKSOURCE_WATCHDOG
 static void clocksource_watchdog_work(struct work_struct *work);
@@ -113,7 +113,7 @@ static struct clocksource *watchdog;
 static struct timer_list watchdog_timer;
 static DECLARE_WORK(watchdog_work, clocksource_watchdog_work);
 static DEFINE_SPINLOCK(watchdog_lock);
-static bool watchdog_running;
+static int watchdog_running;
 static atomic_t watchdog_reset_pending;
 
 static int clocksource_watchdog_kthread(void *data);
@@ -283,7 +283,7 @@ static inline void clocksource_start_watchdog(void)
 	watchdog_timer.function = clocksource_watchdog;
 	watchdog_timer.expires = jiffies + WATCHDOG_INTERVAL;
 	add_timer_on(&watchdog_timer, cpumask_first(cpu_online_mask));
-	watchdog_running = true;
+	watchdog_running = 1;
 }
 
 static inline void clocksource_stop_watchdog(void)
@@ -291,7 +291,7 @@ static inline void clocksource_stop_watchdog(void)
 	if (!watchdog_running || (watchdog && !list_empty(&watchdog_list)))
 		return;
 	del_timer(&watchdog_timer);
-	watchdog_running = false;
+	watchdog_running = 0;
 }
 
 static inline void clocksource_reset_watchdog(void)

@@ -5843,7 +5843,7 @@ struct sg_lb_stats {
 	unsigned int idle_cpus;
 	unsigned int group_weight;
 	enum group_type group_type;
-	bool group_has_free_capacity;
+	int group_has_free_capacity;
 #ifdef CONFIG_NUMA_BALANCING
 	unsigned int nr_numa_running;
 	unsigned int nr_preferred_running;
@@ -6225,7 +6225,7 @@ static inline void update_sg_lb_stats(struct lb_env *env,
 	sgs->group_type = group_classify(group, sgs);
 
 	if (sgs->group_capacity_factor > sgs->sum_nr_running)
-		sgs->group_has_free_capacity = true;
+		sgs->group_has_free_capacity = 1;
 }
 
 /**
