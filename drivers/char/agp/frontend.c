@@ -111,7 +111,7 @@ agp_segment_priv *agp_find_seg_in_client(const struct agp_client *client,
 	seg = *(client->segments);
 	num_segments = client->num_segments;
 
-	for (i = 0; i < client->num_segments; i++) {
+	for (i = 0; i < num_segments; i++) {
 		if ((seg[i].pg_start == pg_start) &&
 		    (seg[i].pg_count == pg_count) &&
 		    (pgprot_val(seg[i].prot) == pgprot_val(page_prot))) {
