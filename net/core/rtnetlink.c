@@ -2502,7 +2502,7 @@ static int rtnl_fdb_add(struct sk_buff *skb, struct nlmsghdr *nlh)
 	err = -EOPNOTSUPP;
 
 	/* Support fdb on master device the net/bridge default case */
-	if ((!ndm->ndm_flags || ndm->ndm_flags & NTF_MASTER) &&
+	if ((!ndm->ndm_flags || (ndm->ndm_flags & NTF_MASTER)) &&
 	    (dev->priv_flags & IFF_BRIDGE_PORT)) {
 		struct net_device *br_dev = netdev_master_upper_dev_get(dev);
 		const struct net_device_ops *ops = br_dev->netdev_ops;
@@ -2604,7 +2604,7 @@ static int rtnl_fdb_del(struct sk_buff *skb, struct nlmsghdr *nlh)
 	err = -EOPNOTSUPP;
 
 	/* Support fdb on master device the net/bridge default case */
-	if ((!ndm->ndm_flags || ndm->ndm_flags & NTF_MASTER) &&
+	if ((!ndm->ndm_flags || (ndm->ndm_flags & NTF_MASTER)) &&
 	    (dev->priv_flags & IFF_BRIDGE_PORT)) {
 		struct net_device *br_dev = netdev_master_upper_dev_get(dev);
 		const struct net_device_ops *ops = br_dev->netdev_ops;
@@ -3111,7 +3111,7 @@ static int rtnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 {
 	struct net *net = sock_net(skb->sk);
 	rtnl_doit_func doit;
-	int sz_idx, kind;
+	int kind;
 	int family;
 	int type;
 	int err;
@@ -3127,13 +3127,12 @@ static int rtnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 		return 0;
 
 	family = ((struct rtgenmsg *)nlmsg_data(nlh))->rtgen_family;
-	sz_idx = type>>2;
 	kind = type&3;
 
 	if (kind != 2 && !netlink_net_capable(skb, CAP_NET_ADMIN))
 		return -EPERM;
 
-	if (kind == 2 && nlh->nlmsg_flags&NLM_F_DUMP) {
+	if (kind == 2 && (nlh->nlmsg_flags & NLM_F_DUMP)) {
 		struct sock *rtnl;
 		rtnl_dumpit_func dumpit;
 		rtnl_calcit_func calcit;
