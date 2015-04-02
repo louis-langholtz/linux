@@ -365,7 +365,6 @@ u32 __ieee80211_vht_handle_opmode(struct ieee80211_sub_if_data *sdata,
 				  struct sta_info *sta, u8 opmode,
 				  enum ieee80211_band band, bool nss_only)
 {
-	struct ieee80211_local *local = sdata->local;
 	enum ieee80211_sta_rx_bandwidth new_bw;
 	u32 changed = 0;
 	u8 nss;
