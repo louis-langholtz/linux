@@ -5479,8 +5479,7 @@ static int nv_open(struct net_device *dev)
 	 * speed changes cause interrupts and are handled by nv_link_irq().
 	 */
 	{
-		u32 miistat;
-		miistat = readl(base + NvRegMIIStatus);
+		readl(base + NvRegMIIStatus);
 		writel(NVREG_MIISTAT_MASK_ALL, base + NvRegMIIStatus);
 	}
 	/* set linkspeed to invalid value, thus force nv_update_linkspeed
