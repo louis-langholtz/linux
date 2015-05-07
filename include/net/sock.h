@@ -1778,7 +1778,7 @@ static inline void sk_nocaps_add(struct sock *sk, netdev_features_t flags)
 
 static inline int skb_do_copy_data_nocache(struct sock *sk, struct sk_buff *skb,
 					   struct iov_iter *from, char *to,
-					   int copy, int offset)
+					   size_t copy, int offset)
 {
 	if (skb->ip_summed == CHECKSUM_NONE) {
 		__wsum csum = 0;
@@ -1800,7 +1800,7 @@ static inline int skb_add_data_nocache(struct sock *sk, struct sk_buff *skb,
 	int err, offset = skb->len;
 
 	err = skb_do_copy_data_nocache(sk, skb, from, skb_put(skb, copy),
-				       copy, offset);
+				       (size_t)copy, offset);
 	if (err)
 		__skb_trim(skb, offset);
 
@@ -1815,7 +1815,7 @@ static inline int skb_copy_to_page_nocache(struct sock *sk, struct iov_iter *fro
 	int err;
 
 	err = skb_do_copy_data_nocache(sk, skb, from, page_address(page) + off,
-				       copy, skb->len);
+				       (size_t)copy, skb->len);
 	if (err)
 		return err;
 
