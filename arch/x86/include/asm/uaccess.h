@@ -696,7 +696,7 @@ copy_from_user(void *to, const void __user *from, unsigned long n)
 	 * even in the non-constant size case, any false positives there are
 	 * a problem (especially when DEBUG_STRICT_USER_COPY_CHECKS, but even
 	 * without - the [hopefully] dangerous looking nature of the warning
-	 * would make people go look at the respecitive call sites over and
+	 * would make people go look at the respective call sites over and
 	 * over again just to find that there's no problem).
 	 *
 	 * And there are cases where it's just not realistic for the compiler
