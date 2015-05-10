@@ -56,7 +56,7 @@ static struct list_head wimax_id_table = LIST_HEAD_INIT(wimax_id_table);
 
 
 /*
- * wimax_id_table_add - add a gennetlink familiy ID / wimax_dev mapping
+ * wimax_id_table_add - add a gennetlink family ID / wimax_dev mapping
  *
  * @wimax_dev: WiMAX device descriptor to associate to the Generic
  *     Netlink family ID.
@@ -109,7 +109,7 @@ found:
 
 
 /*
- * wimax_id_table_rm - Remove a gennetlink familiy ID / wimax_dev mapping
+ * wimax_id_table_rm - Remove a gennetlink family ID / wimax_dev mapping
  *
  * @id: family ID to remove from the table
  */
