@@ -397,7 +397,7 @@ LINUXINCLUDE    := \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-KBUILD_CFLAGS   := -Wall -Wextra -Wundef -Wstrict-prototypes \
+KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wextra \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-unused-parameter \
