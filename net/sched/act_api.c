@@ -74,7 +74,8 @@ static int tcf_dump_walker(struct sk_buff *skb, struct netlink_callback *cb,
 	struct tcf_hashinfo *hinfo = a->ops->hinfo;
 	struct hlist_head *head;
 	struct tcf_common *p;
-	int err = 0, index = -1, i = 0, s_i = 0, n_i = 0;
+	unsigned int i;
+	int err = 0, index = -1, s_i = 0, n_i = 0;
 	struct nlattr *nest;
 
 	spin_lock_bh(&hinfo->lock);
@@ -124,7 +125,8 @@ static int tcf_del_walker(struct sk_buff *skb, struct tc_action *a)
 	struct hlist_node *n;
 	struct tcf_common *p;
 	struct nlattr *nest;
-	int i = 0, n_i = 0;
+	unsigned int i;
+	int n_i = 0;
 	int ret = -EINVAL;
 
 	nest = nla_nest_start(skb, a->order);

@@ -111,8 +111,7 @@ static struct bucket_table *bucket_table_alloc(struct rhashtable *ht,
 					       gfp_t gfp)
 {
 	struct bucket_table *tbl = NULL;
-	size_t size;
-	int i;
+	size_t size, i;
 
 	size = sizeof(*tbl) + nbuckets * sizeof(tbl->buckets[0]);
 	if (size <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER) ||

@@ -116,7 +116,8 @@ const struct font_desc *find_font(const char *name)
 const struct font_desc *get_default_font(int xres, int yres, u32 font_w,
 					 u32 font_h)
 {
-    int i, c, cc;
+    size_t i;
+    int c, cc;
     const struct font_desc *f, *g;
 
     g = NULL;

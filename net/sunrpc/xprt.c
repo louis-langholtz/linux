@@ -1126,7 +1126,7 @@ struct rpc_xprt *xprt_alloc(struct net *net, size_t size,
 {
 	struct rpc_xprt *xprt;
 	struct rpc_rqst *req;
-	int i;
+	unsigned int i;
 
 	xprt = kzalloc(size, GFP_KERNEL);
 	if (xprt == NULL)

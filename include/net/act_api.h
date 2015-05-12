@@ -49,7 +49,7 @@ static inline unsigned int tcf_hash(u32 index, unsigned int hmask)
 
 static inline int tcf_hashinfo_init(struct tcf_hashinfo *hf, unsigned int mask)
 {
-	int i;
+	unsigned int i;
 
 	spin_lock_init(&hf->lock);
 	hf->index = 0;

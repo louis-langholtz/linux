@@ -43,7 +43,8 @@ void string_get_size(u64 size, u64 blk_size, const enum string_size_units units,
 		[STRING_UNITS_10] = 1000,
 		[STRING_UNITS_2] = 1024,
 	};
-	int i, j;
+	size_t i;
+	int j;
 	u32 remainder = 0, sf_cap, exp;
 	char tmp[8];
 	const char *unit;

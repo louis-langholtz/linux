@@ -184,8 +184,8 @@ static int gssx_dec_linux_creds(struct xdr_stream *xdr,
 	u32 length;
 	__be32 *p;
 	u32 tmp;
-	u32 N;
-	int i, err;
+	u32 N, i;
+	int err;
 
 	p = xdr_inline_decode(xdr, 4);
 	if (unlikely(p == NULL))
