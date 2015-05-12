@@ -262,7 +262,7 @@ static int sub_alloc(struct idr *idp, int *starting_id, struct idr_layer **pa,
 			sh = IDR_BITS*l;
 			id = ((id >> sh) ^ n ^ m) << sh;
 		}
-		if ((id >= MAX_IDR_BIT) || (id < 0))
+		if ((id < 0) || (((unsigned int)id) >= MAX_IDR_BIT))
 			return -ENOSPC;
 		if (l == 0)
 			break;
