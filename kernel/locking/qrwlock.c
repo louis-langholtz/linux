@@ -109,7 +109,7 @@ void queue_write_lock_slowpath(struct qrwlock *lock)
 	for (;;) {
 		cnts = atomic_read(&lock->cnts);
 		if (!(cnts & _QW_WMASK) &&
-		    (((u32 *)atomic_cmpxchg(&lock->cnts, cnts,
+		    (((u32)atomic_cmpxchg(&lock->cnts, cnts,
 				    cnts | _QW_WAITING)) == cnts))
 			break;
 
