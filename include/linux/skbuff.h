@@ -2502,7 +2502,7 @@ static inline int skb_put_padto(struct sk_buff *skb, unsigned int len)
 }
 
 static inline int skb_add_data(struct sk_buff *skb,
-			       struct iov_iter *from, int copy)
+			       struct iov_iter *from, unsigned int copy)
 {
 	const int off = skb->len;
 
