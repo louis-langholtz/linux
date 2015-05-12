@@ -581,7 +581,8 @@ xfrm_state_flush_secctx_check(struct net *net, u8 proto, bool task_valid)
 
 int xfrm_state_flush(struct net *net, u8 proto, bool task_valid)
 {
-	int i, err = 0, cnt = 0;
+	unsigned int i;
+	int err = 0, cnt = 0;
 
 	spin_lock_bh(&net->xfrm.xfrm_state_lock);
 	err = xfrm_state_flush_secctx_check(net, proto, task_valid);
@@ -1474,7 +1475,7 @@ EXPORT_SYMBOL(xfrm_state_sort);
 
 static struct xfrm_state *__xfrm_find_acq_byseq(struct net *net, u32 mark, u32 seq)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i <= net->xfrm.state_hmask; i++) {
 		struct xfrm_state *x;
@@ -1845,7 +1846,7 @@ int xfrm_user_policy(struct sock *sk, int optname, u8 __user *optval, int optlen
 	struct xfrm_mgr *km;
 	struct xfrm_policy *pol = NULL;
 
-	if (optlen <= 0 || optlen > PAGE_SIZE)
+	if (optlen <= 0 || ((unsigned int)optlen) > PAGE_SIZE)
 		return -EMSGSIZE;
 
 	data = kmalloc(optlen, GFP_KERNEL);
