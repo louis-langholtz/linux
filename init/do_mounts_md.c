@@ -83,7 +83,7 @@ static int __init md_setup(char *str)
 			       "Replacing previous definition.\n", partitioned?"d":"", minor);
 			break;
 		}
-	if (ent >= ARRAY_SIZE(md_setup_args)) {
+	if (ent >= (int)ARRAY_SIZE(md_setup_args)) {
 		printk(KERN_WARNING "md: md=%s%d - too many md initialisations\n", partitioned?"d":"", minor);
 		return 0;
 	}
