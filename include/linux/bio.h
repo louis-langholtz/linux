@@ -371,7 +371,7 @@ extern struct bio *bio_split(struct bio *bio, int sectors,
 static inline struct bio *bio_next_split(struct bio *bio, int sectors,
 					 gfp_t gfp, struct bio_set *bs)
 {
-	if (sectors >= bio_sectors(bio))
+	if (sectors >= (typeof(sectors))bio_sectors(bio))
 		return bio;
 
 	return bio_split(bio, sectors, gfp, bs);
