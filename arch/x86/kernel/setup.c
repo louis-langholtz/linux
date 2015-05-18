@@ -658,7 +658,7 @@ static struct resource standard_io_resources[] = {
 
 void __init reserve_standard_io_resources(void)
 {
-	int i;
+	size_t i;
 
 	/* request I/O space for devices used on all i[345]86 PCs */
 	for (i = 0; i < ARRAY_SIZE(standard_io_resources); i++)
@@ -679,7 +679,7 @@ static __init void reserve_ibft_region(void)
 static bool __init snb_gfx_workaround_needed(void)
 {
 #ifdef CONFIG_PCI
-	int i;
+	size_t i;
 	u16 vendor, devid;
 	static const __initconst u16 snb_ids[] = {
 		0x0102,
@@ -721,7 +721,7 @@ static void __init trim_snb_memory(void)
 		0x20138000,
 		0x40004000,
 	};
-	int i;
+	size_t i;
 
 	if (!snb_gfx_workaround_needed())
 		return;

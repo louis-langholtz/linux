@@ -55,7 +55,7 @@ EXPORT_SYMBOL(pci_mem_start);
 int
 e820_any_mapped(u64 start, u64 end, unsigned type)
 {
-	int i;
+	u32 i;
 
 	for (i = 0; i < e820.nr_map; i++) {
 		struct e820entry *ei = &e820.map[i];
@@ -78,7 +78,7 @@ EXPORT_SYMBOL_GPL(e820_any_mapped);
  */
 int __init e820_all_mapped(u64 start, u64 end, unsigned type)
 {
-	int i;
+	u32 i;
 
 	for (i = 0; i < e820.nr_map; i++) {
 		struct e820entry *ei = &e820.map[i];
@@ -110,7 +110,7 @@ int __init e820_all_mapped(u64 start, u64 end, unsigned type)
 static void __init __e820_add_region(struct e820map *e820x, u64 start, u64 size,
 					 int type)
 {
-	int x = e820x->nr_map;
+	u32 x = e820x->nr_map;
 
 	if (x >= ARRAY_SIZE(e820x->map)) {
 		printk(KERN_ERR "e820: too many entries; ignoring [mem %#010llx-%#010llx]\n",
@@ -160,7 +160,7 @@ static void __init e820_print_type(u32 type)
 
 void __init e820_print_map(char *who)
 {
-	int i;
+	u32 i;
 
 	for (i = 0; i < e820.nr_map; i++) {
 		printk(KERN_INFO "%s: [mem %#018Lx-%#018Lx] ", who,
@@ -505,7 +505,7 @@ static u64 __init e820_update_range_saved(u64 start, u64 size,
 u64 __init e820_remove_range(u64 start, u64 size, unsigned old_type,
 			     int checktype)
 {
-	int i;
+	u32 i;
 	u64 end;
 	u64 real_removed_size = 0;
 
@@ -681,7 +681,7 @@ void __init parse_e820_ext(u64 phys_addr, u32 data_len)
  */
 void __init e820_mark_nosave_regions(unsigned long limit_pfn)
 {
-	int i;
+	u32 i;
 	unsigned long pfn = 0;
 
 	for (i = 0; i < e820.nr_map; i++) {
@@ -708,7 +708,7 @@ void __init e820_mark_nosave_regions(unsigned long limit_pfn)
  */
 static int __init e820_mark_nvs_memory(void)
 {
-	int i;
+	u32 i;
 
 	for (i = 0; i < e820.nr_map; i++) {
 		struct e820entry *ei = &e820.map[i];
@@ -754,7 +754,7 @@ u64 __init early_reserve_e820(u64 size, u64 align)
  */
 static unsigned long __init e820_end_pfn(unsigned long limit_pfn)
 {
-	int i;
+	u32 i;
 	unsigned long last_pfn = 0;
 	unsigned long max_arch_pfn = MAX_ARCH_PFN;
 
@@ -929,7 +929,7 @@ static inline const char *e820_type_to_string(int e820_type)
 static struct resource __initdata *e820_res;
 void __init e820_reserve_resources(void)
 {
-	int i;
+	u32 i;
 	struct resource *res;
 	u64 end;
 
@@ -990,7 +990,7 @@ static unsigned long ram_alignment(resource_size_t pos)
 
 void __init e820_reserve_resources_late(void)
 {
-	int i;
+	u32 i;
 	struct resource *res;
 
 	res = e820_res;
@@ -1074,7 +1074,7 @@ void __init setup_memory_map(void)
 
 void __init memblock_x86_fill(void)
 {
-	int i;
+	u32 i;
 	u64 end;
 
 	/*
