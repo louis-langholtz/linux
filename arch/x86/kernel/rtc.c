@@ -174,7 +174,7 @@ static __init int add_rtc_cmos(void)
 	    { "PNP0b00", "PNP0b01", "PNP0b02", };
 	struct pnp_dev *dev;
 	struct pnp_id *id;
-	int i;
+	unsigned int i;
 
 	pnp_for_each_dev(dev) {
 		for (id = dev->id; id; id = id->next) {

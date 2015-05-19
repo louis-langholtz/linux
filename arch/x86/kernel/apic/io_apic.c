@@ -1340,7 +1340,7 @@ static void __init setup_timer_IRQ0_pin(unsigned int ioapic_idx,
 
 void native_io_apic_print_entries(unsigned int apic, unsigned int nr_entries)
 {
-	int i;
+	unsigned int i;
 
 	pr_debug(" NR Dst Mask Trig IRR Pol Stat Dmod Deli Vect:\n");
 
