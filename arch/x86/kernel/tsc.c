@@ -563,7 +563,7 @@ static inline int pit_expect_msb(unsigned char val, u64 *tscp, unsigned long *de
 
 static unsigned long quick_pit_calibrate(void)
 {
-	int i;
+	unsigned int i;
 	u64 tsc, delta;
 	unsigned long d1, d2;
 
@@ -1069,7 +1069,7 @@ static DECLARE_DELAYED_WORK(tsc_irqwork, tsc_refine_calibration_work);
  */
 static void tsc_refine_calibration_work(struct work_struct *work)
 {
-	static u64 tsc_start = -1, ref_start;
+	static u64 tsc_start = (u64)-1, ref_start;
 	static int hpet;
 	u64 tsc_stop, ref_stop, delta;
 	unsigned long freq;
@@ -1083,7 +1083,7 @@ static void tsc_refine_calibration_work(struct work_struct *work)
 	 * delayed the first time we expire. So set the workqueue
 	 * again once we know timers are working.
 	 */
-	if (tsc_start == -1) {
+	if (tsc_start == (u64)-1) {
 		/*
 		 * Only set hpet once, to avoid mixing hardware
 		 * if the hpet becomes enabled later.
