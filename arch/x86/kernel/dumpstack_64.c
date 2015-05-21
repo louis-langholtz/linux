@@ -299,7 +299,6 @@ show_stack_log_lvl(struct task_struct *task, struct pt_regs *regs,
 
 void show_regs(struct pt_regs *regs)
 {
-	int i;
 	unsigned long sp;
 
 	sp = regs->sp;
@@ -312,7 +311,7 @@ void show_regs(struct pt_regs *regs)
 	 */
 	if (!user_mode(regs)) {
 		unsigned int code_prologue = code_bytes * 43 / 64;
-		unsigned int code_len = code_bytes;
+		unsigned int code_len = code_bytes, i;
 		unsigned char c;
 		u8 *ip;
 

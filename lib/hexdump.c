@@ -108,17 +108,21 @@ int hex_dump_to_buffer(const void *buf, size_t len, int rowsize, int groupsize,
 		       char *linebuf, size_t linebuflen, bool ascii)
 {
 	const u8 *ptr = buf;
-	int ngroups;
+	size_t ngroups;
 	u8 ch;
-	int j, lx = 0;
-	int ascii_column;
+	size_t j;
+	unsigned int lx = 0;
+	unsigned int ascii_column;
 	int ret;
 
 	if (rowsize != 16 && rowsize != 32)
 		rowsize = 16;
 
-	if (len > rowsize)		/* limit to one line at a time */
-		len = rowsize;
+	if (len > (unsigned int)rowsize)		/* limit to one line at a time */
+		len = (unsigned int)rowsize;
+
+	if (unlikely(groupsize < 0))
+		goto nil;
 	if (!is_power_of_2(groupsize) || groupsize > 8)
 		groupsize = 1;
 	if ((len % groupsize) != 0)	/* no mixed size output */
@@ -140,7 +144,9 @@ int hex_dump_to_buffer(const void *buf, size_t len, int rowsize, int groupsize,
 			ret = snprintf(linebuf + lx, linebuflen - lx,
 				       "%s%16.16llx", j ? " " : "",
 				       (unsigned long long)*(ptr8 + j));
-			if (ret >= linebuflen - lx)
+			if (unlikely(ret < 0))
+				goto nil;
+			if (((unsigned int)ret) >= linebuflen - lx)
 				goto overflow1;
 			lx += ret;
 		}
@@ -151,7 +157,9 @@ int hex_dump_to_buffer(const void *buf, size_t len, int rowsize, int groupsize,
 			ret = snprintf(linebuf + lx, linebuflen - lx,
 				       "%s%8.8x", j ? " " : "",
 				       *(ptr4 + j));
-			if (ret >= linebuflen - lx)
+			if (unlikely(ret < 0))
+				goto nil;
+			if (((unsigned int)ret) >= linebuflen - lx)
 				goto overflow1;
 			lx += ret;
 		}
@@ -162,13 +170,15 @@ int hex_dump_to_buffer(const void *buf, size_t len, int rowsize, int groupsize,
 			ret = snprintf(linebuf + lx, linebuflen - lx,
 				       "%s%4.4x", j ? " " : "",
 				       *(ptr2 + j));
-			if (ret >= linebuflen - lx)
+			if (unlikely(ret < 0))
+				goto nil;
+			if (((unsigned int)ret) >= linebuflen - lx)
 				goto overflow1;
 			lx += ret;
 		}
 	} else {
 		for (j = 0; j < len; j++) {
-			if (linebuflen < lx + 3)
+			if (linebuflen < (size_t)(lx + 3))
 				goto overflow2;
 			ch = ptr[j];
 			linebuf[lx++] = hex_asc_hi(ch);
@@ -239,7 +249,8 @@ void print_hex_dump(const char *level, const char *prefix_str, int prefix_type,
 		    const void *buf, size_t len, bool ascii)
 {
 	const u8 *ptr = buf;
-	int i, linelen, remaining = len;
+	unsigned int i;
+	int linelen, remaining = len;
 	unsigned char linebuf[32 * 3 + 2 + 32 + 1];
 
 	if (rowsize != 16 && rowsize != 32)

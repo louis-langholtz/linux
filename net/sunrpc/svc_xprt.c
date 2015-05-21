@@ -1018,7 +1018,7 @@ static struct svc_xprt *svc_dequeue_net(struct svc_serv *serv, struct net *net)
 	struct svc_pool *pool;
 	struct svc_xprt *xprt;
 	struct svc_xprt *tmp;
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < serv->sv_nrpools; i++) {
 		pool = &serv->sv_pools[i];

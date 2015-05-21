@@ -2963,8 +2963,8 @@ static int nv_rx_process_optimized(struct net_device *dev, int limit)
 			 * here. Even if vlan rx accel is disabled,
 			 * NV_RX3_VLAN_TAG_PRESENT is pseudo randomly set.
 			 */
-			if (dev->features & NETIF_F_HW_VLAN_CTAG_RX &&
-			    vlanflags & NV_RX3_VLAN_TAG_PRESENT) {
+			if ((dev->features & NETIF_F_HW_VLAN_CTAG_RX) &&
+			    (vlanflags & NV_RX3_VLAN_TAG_PRESENT)) {
 				u16 vid = vlanflags & NV_RX3_VLAN_TAG_MASK;
 
 				__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), vid);
@@ -3135,7 +3135,7 @@ static void nv_set_multicast(struct net_device *dev)
 	} else {
 		pff |= NVREG_PFF_MYADDR;
 
-		if (dev->flags & IFF_ALLMULTI || !netdev_mc_empty(dev)) {
+		if ((dev->flags & IFF_ALLMULTI) || !netdev_mc_empty(dev)) {
 			u32 alwaysOff[2];
 			u32 alwaysOn[2];
 
@@ -3476,7 +3476,7 @@ set_speed:
 	pause_flags = 0;
 	/* setup pause frame */
 	if (netif_running(dev) && (np->duplex != 0)) {
-		if (np->autoneg && np->pause_flags & NV_PAUSEFRAME_AUTONEG) {
+		if (np->autoneg && (np->pause_flags & NV_PAUSEFRAME_AUTONEG)) {
 			adv_pause = adv & (ADVERTISE_PAUSE_CAP | ADVERTISE_PAUSE_ASYM);
 			lpa_pause = lpa & (LPA_PAUSE_CAP | LPA_PAUSE_ASYM);
 
@@ -5479,8 +5479,7 @@ static int nv_open(struct net_device *dev)
 	 * speed changes cause interrupts and are handled by nv_link_irq().
 	 */
 	{
-		u32 miistat;
-		miistat = readl(base + NvRegMIIStatus);
+		readl(base + NvRegMIIStatus);
 		writel(NVREG_MIISTAT_MASK_ALL, base + NvRegMIIStatus);
 	}
 	/* set linkspeed to invalid value, thus force nv_update_linkspeed
@@ -5661,7 +5660,7 @@ static int nv_probe(struct pci_dev *pci_dev, const struct pci_device_id *id)
 	err = -EINVAL;
 	addr = 0;
 	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
-		if (pci_resource_flags(pci_dev, i) & IORESOURCE_MEM &&
+		if ((pci_resource_flags(pci_dev, i) & IORESOURCE_MEM) &&
 				pci_resource_len(pci_dev, i) >= np->register_size) {
 			addr = pci_resource_start(pci_dev, i);
 			break;

@@ -617,7 +617,7 @@ static int rxrpc_send_data(struct rxrpc_sock *rx,
 				copy = sp->remain;
 
 			_debug("add");
-			ret = skb_add_data(skb, &msg->msg_iter, copy);
+			ret = skb_add_data(skb, &msg->msg_iter, (unsigned int)copy);
 			_debug("added");
 			if (ret < 0)
 				goto efault;

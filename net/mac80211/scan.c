@@ -195,10 +195,10 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 		 */
 		if (!(sdata1 &&
 		      (ether_addr_equal(mgmt->da, sdata1->vif.addr) ||
-		       scan_req->flags & NL80211_SCAN_FLAG_RANDOM_ADDR)) &&
+		       (scan_req->flags & NL80211_SCAN_FLAG_RANDOM_ADDR))) &&
 		    !(sdata2 &&
 		      (ether_addr_equal(mgmt->da, sdata2->vif.addr) ||
-		       sched_scan_req->flags & NL80211_SCAN_FLAG_RANDOM_ADDR)))
+		       (sched_scan_req->flags & NL80211_SCAN_FLAG_RANDOM_ADDR))))
 			return;
 
 		elements = mgmt->u.probe_resp.variable;
@@ -215,7 +215,7 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 
 	channel = ieee80211_get_channel(local->hw.wiphy, rx_status->freq);
 
-	if (!channel || channel->flags & IEEE80211_CHAN_DISABLED)
+	if (!channel || (channel->flags & IEEE80211_CHAN_DISABLED))
 		return;
 
 	bss = ieee80211_bss_info_update(local, rx_status,
@@ -439,7 +439,7 @@ static bool ieee80211_can_scan(struct ieee80211_local *local,
 		return false;
 
 	if (sdata->vif.type == NL80211_IFTYPE_STATION &&
-	    sdata->u.mgd.flags & IEEE80211_STA_CONNECTION_POLL)
+	    (sdata->u.mgd.flags & IEEE80211_STA_CONNECTION_POLL))
 		return false;
 
 	return true;
@@ -773,7 +773,7 @@ static void ieee80211_scan_state_set_channel(struct ieee80211_local *local,
 	 *
 	 * In any case, it is not necessary for a passive scan.
 	 */
-	if (chan->flags & IEEE80211_CHAN_NO_IR || !scan_req->n_ssids) {
+	if ((chan->flags & IEEE80211_CHAN_NO_IR) || !scan_req->n_ssids) {
 		*next_delay = IEEE80211_PASSIVE_CHANNEL_TIME;
 		local->next_scan_state = SCAN_DECISION;
 		return;
@@ -1069,7 +1069,6 @@ int __ieee80211_request_sched_scan_start(struct ieee80211_sub_if_data *sdata,
 	u32 rate_masks[IEEE80211_NUM_BANDS] = {};
 	u8 bands_used = 0;
 	u8 *ie;
-	size_t len;
 
 	iebufsz = local->scan_ies_len + req->ie_len;
 
@@ -1094,7 +1093,7 @@ int __ieee80211_request_sched_scan_start(struct ieee80211_sub_if_data *sdata,
 
 	ieee80211_prepare_scan_chandef(&chandef, req->scan_width);
 
-	len = ieee80211_build_preq_ies(local, ie, num_bands * iebufsz,
+	ieee80211_build_preq_ies(local, ie, num_bands * iebufsz,
 				       &sched_scan_ies, req->ie,
 				       req->ie_len, bands_used,
 				       rate_masks, &chandef);

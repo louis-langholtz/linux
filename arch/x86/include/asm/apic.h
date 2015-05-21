@@ -17,11 +17,16 @@
 #define ARCH_APICTIMER_STOPS_ON_C3	1
 
 /*
- * Debugging macros
+ * Debugging levels.
+ *
+ * These are values that the apic_verbosity variable can
+ * be assigned.
  */
-#define APIC_QUIET   0
-#define APIC_VERBOSE 1
-#define APIC_DEBUG   2
+enum apic_verbosity_level {
+	APIC_QUIET = 0,
+	APIC_VERBOSE = 1,
+	APIC_DEBUG = 2
+};
 
 /*
  * Define the default level of output to be very little
@@ -45,7 +50,7 @@ static inline void generic_apic_probe(void)
 
 #ifdef CONFIG_X86_LOCAL_APIC
 
-extern unsigned int apic_verbosity;
+extern enum apic_verbosity_level apic_verbosity;
 extern int local_apic_timer_c2_ok;
 
 extern int disable_apic;

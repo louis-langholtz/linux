@@ -136,7 +136,7 @@ static int fa_element_to_part_nr(struct flex_array *fa,
  */
 void flex_array_free_parts(struct flex_array *fa)
 {
-	int part_nr;
+	size_t part_nr;
 
 	if (elements_fit_in_base(fa))
 		return;
@@ -356,7 +356,7 @@ EXPORT_SYMBOL(flex_array_get_ptr);
 
 static int part_is_free(struct flex_array_part *part)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; i < sizeof(struct flex_array_part); i++)
 		if (part->elements[i] != FLEX_ARRAY_FREE)
@@ -376,7 +376,7 @@ static int part_is_free(struct flex_array_part *part)
 int flex_array_shrink(struct flex_array *fa)
 {
 	struct flex_array_part *part;
-	int part_nr;
+	size_t part_nr;
 	int ret = 0;
 
 	if (!fa->total_nr_elements || !fa->element_size)

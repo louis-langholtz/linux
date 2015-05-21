@@ -224,8 +224,8 @@ static inline int user_regset_copyout(unsigned int *pos, unsigned int *count,
 {
 	if (*count == 0)
 		return 0;
-	BUG_ON(*pos < start_pos);
-	if (end_pos < 0 || *pos < end_pos) {
+	BUG_ON(start_pos < 0 || *pos < (unsigned int)start_pos);
+	if (end_pos < 0 || *pos < (unsigned int)end_pos) {
 		unsigned int copy = (end_pos < 0 ? *count
 				     : min(*count, end_pos - *pos));
 		data += *pos - start_pos;
@@ -249,8 +249,8 @@ static inline int user_regset_copyin(unsigned int *pos, unsigned int *count,
 {
 	if (*count == 0)
 		return 0;
-	BUG_ON(*pos < start_pos);
-	if (end_pos < 0 || *pos < end_pos) {
+	BUG_ON(start_pos < 0 || *pos < (unsigned int)start_pos);
+	if (end_pos < 0 || *pos < (unsigned int)end_pos) {
 		unsigned int copy = (end_pos < 0 ? *count
 				     : min(*count, end_pos - *pos));
 		data += *pos - start_pos;
@@ -279,8 +279,8 @@ static inline int user_regset_copyout_zero(unsigned int *pos,
 {
 	if (*count == 0)
 		return 0;
-	BUG_ON(*pos < start_pos);
-	if (end_pos < 0 || *pos < end_pos) {
+	BUG_ON(start_pos < 0 || *pos < (unsigned int)start_pos);
+	if (end_pos < 0 || *pos < (unsigned int)end_pos) {
 		unsigned int copy = (end_pos < 0 ? *count
 				     : min(*count, end_pos - *pos));
 		if (*kbuf) {
@@ -305,8 +305,8 @@ static inline int user_regset_copyin_ignore(unsigned int *pos,
 {
 	if (*count == 0)
 		return 0;
-	BUG_ON(*pos < start_pos);
-	if (end_pos < 0 || *pos < end_pos) {
+	BUG_ON(start_pos < 0 || *pos < (unsigned int)start_pos);
+	if (end_pos < 0 || *pos < (unsigned int)end_pos) {
 		unsigned int copy = (end_pos < 0 ? *count
 				     : min(*count, end_pos - *pos));
 		if (*kbuf)

@@ -141,7 +141,7 @@ void init_espfix_ap(void)
 	pud_t pud, *pud_p;
 	pmd_t pmd, *pmd_p;
 	pte_t pte, *pte_p;
-	int n;
+	unsigned int n;
 	void *stack_page;
 	pteval_t ptemask;
 

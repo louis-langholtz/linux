@@ -2880,7 +2880,7 @@ static inline unsigned int get_netdev_rx_queue_index(
 	struct net_device *dev = queue->dev;
 	int index = queue - dev->_rx;
 
-	BUG_ON(index >= dev->num_rx_queues);
+	BUG_ON(index < 0 || ((unsigned int)index) >= dev->num_rx_queues);
 	return index;
 }
 #endif
@@ -3156,7 +3156,7 @@ enum {
 static inline u32 netif_msg_init(int debug_value, int default_msg_enable_bits)
 {
 	/* use default */
-	if (debug_value < 0 || debug_value >= (sizeof(u32) * 8))
+	if (debug_value < 0 || ((unsigned int)debug_value) >= (sizeof(u32) * 8))
 		return default_msg_enable_bits;
 	if (debug_value == 0)	/* no output */
 		return 0;

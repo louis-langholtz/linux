@@ -324,7 +324,7 @@ union entry_union {
 	struct IO_APIC_route_entry entry;
 };
 
-static struct IO_APIC_route_entry __ioapic_read_entry(int apic, int pin)
+static struct IO_APIC_route_entry __ioapic_read_entry(unsigned int apic, unsigned int pin)
 {
 	union entry_union eu;
 
@@ -334,7 +334,7 @@ static struct IO_APIC_route_entry __ioapic_read_entry(int apic, int pin)
 	return eu.entry;
 }
 
-static struct IO_APIC_route_entry ioapic_read_entry(int apic, int pin)
+static struct IO_APIC_route_entry ioapic_read_entry(unsigned int apic, unsigned int pin)
 {
 	union entry_union eu;
 	unsigned long flags;
@@ -352,7 +352,7 @@ static struct IO_APIC_route_entry ioapic_read_entry(int apic, int pin)
  * the interrupt, and we need to make sure the entry is fully populated
  * before that happens.
  */
-static void __ioapic_write_entry(int apic, int pin, struct IO_APIC_route_entry e)
+static void __ioapic_write_entry(unsigned int apic, unsigned int pin, struct IO_APIC_route_entry e)
 {
 	union entry_union eu = {{0, 0}};
 
@@ -361,7 +361,7 @@ static void __ioapic_write_entry(int apic, int pin, struct IO_APIC_route_entry e
 	io_apic_write(apic, 0x10 + 2*pin, eu.w1);
 }
 
-static void ioapic_write_entry(int apic, int pin, struct IO_APIC_route_entry e)
+static void ioapic_write_entry(unsigned int apic, unsigned int pin, struct IO_APIC_route_entry e)
 {
 	unsigned long flags;
 
@@ -1340,7 +1340,7 @@ static void __init setup_timer_IRQ0_pin(unsigned int ioapic_idx,
 
 void native_io_apic_print_entries(unsigned int apic, unsigned int nr_entries)
 {
-	int i;
+	unsigned int i;
 
 	pr_debug(" NR Dst Mask Trig IRR Pol Stat Dmod Deli Vect:\n");
 
@@ -1366,7 +1366,7 @@ void native_io_apic_print_entries(unsigned int apic, unsigned int nr_entries)
 void intel_ir_io_apic_print_entries(unsigned int apic,
 				    unsigned int nr_entries)
 {
-	int i;
+	unsigned int i;
 
 	pr_debug(" NR Indx Fmt Mask Trig IRR Pol Stat Indx2 Zero Vect:\n");
 

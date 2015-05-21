@@ -62,7 +62,7 @@ static int match_cpu(u8 family, u8 model)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(freq_desc_tables); i++) {
+	for (i = 0; i < (int)ARRAY_SIZE(freq_desc_tables); i++) {
 		if ((family == freq_desc_tables[i].x86_family) &&
 			(model == freq_desc_tables[i].x86_model))
 			return i;

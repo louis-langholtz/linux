@@ -874,7 +874,7 @@ static void add_rule(struct ieee80211_reg_rule *rule,
 		     struct ieee80211_reg_rule *reg_rules, u32 *n_rules)
 {
 	struct ieee80211_reg_rule *tmp_rule;
-	int i;
+	u32 i;
 
 	for (i = 0; i < *n_rules; i++) {
 		tmp_rule = &reg_rules[i];
@@ -1006,7 +1006,7 @@ static const struct ieee80211_reg_rule *
 freq_reg_info_regd(struct wiphy *wiphy, u32 center_freq,
 		   const struct ieee80211_regdomain *regd)
 {
-	int i;
+	u32 i;
 	bool band_rule_found = false;
 	bool bw_fits = false;
 

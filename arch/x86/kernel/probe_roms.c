@@ -113,7 +113,7 @@ static bool probe_list(struct pci_dev *pdev, unsigned short vendor,
 static struct resource *find_oprom(struct pci_dev *pdev)
 {
 	struct resource *oprom = NULL;
-	int i;
+	size_t i;
 
 	for (i = 0; i < ARRAY_SIZE(adapter_rom_resources); i++) {
 		struct resource *res = &adapter_rom_resources[i];
@@ -199,7 +199,7 @@ void __init probe_roms(void)
 	const unsigned char *rom;
 	unsigned long start, length, upper;
 	unsigned char c;
-	int i;
+	size_t i;
 
 	/* video rom */
 	upper = adapter_rom_resources[0].start;

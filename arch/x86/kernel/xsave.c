@@ -495,7 +495,7 @@ static void __init setup_xstate_features(void)
 void setup_xstate_comp(void)
 {
 	unsigned int xstate_comp_sizes[sizeof(pcntxt_mask)*8];
-	int i;
+	unsigned int i;
 
 	/*
 	 * The FP xstates and SSE xstates are legacy states. They are always

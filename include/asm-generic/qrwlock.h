@@ -89,8 +89,8 @@ static inline int queue_write_trylock(struct qrwlock *lock)
 	if (unlikely(cnts))
 		return 0;
 
-	return likely(atomic_cmpxchg(&lock->cnts,
-				     cnts, cnts | _QW_LOCKED) == cnts);
+	return likely(((u32)atomic_cmpxchg(&lock->cnts,
+				     cnts, cnts | _QW_LOCKED)) == cnts);
 }
 /**
  * queue_read_lock - acquire read lock of a queue rwlock

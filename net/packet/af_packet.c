@@ -2903,7 +2903,7 @@ static int packet_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 	struct sock *sk = sock->sk;
 	struct sk_buff *skb;
 	int copied, err;
-	int vnet_hdr_len = 0;
+	size_t vnet_hdr_len = 0;
 	unsigned int origlen = 0;
 
 	err = -EINVAL;

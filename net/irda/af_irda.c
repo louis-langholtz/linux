@@ -1424,7 +1424,7 @@ static int irda_recvmsg_stream(struct socket *sock, struct msghdr *msg,
 	timeo = sock_rcvtimeo(sk, noblock);
 
 	do {
-		int chunk;
+		unsigned int chunk;
 		struct sk_buff *skb = skb_dequeue(&sk->sk_receive_queue);
 
 		if (skb == NULL) {

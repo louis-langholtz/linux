@@ -402,7 +402,7 @@ rpcauth_clear_credcache(struct rpc_cred_cache *cache)
 	struct hlist_head *head;
 	struct rpc_cred	*cred;
 	unsigned int hashsize = 1U << cache->hashbits;
-	int		i;
+	unsigned int i;
 
 	spin_lock(&rpc_credcache_lock);
 	spin_lock(&cache->lock);

@@ -369,7 +369,7 @@ static int caif_stream_recvmsg(struct socket *sock, struct msghdr *msg,
 	timeo = sock_rcvtimeo(sk, flags&MSG_DONTWAIT);
 
 	do {
-		int chunk;
+		unsigned int chunk;
 		struct sk_buff *skb;
 
 		lock_sock(sk);

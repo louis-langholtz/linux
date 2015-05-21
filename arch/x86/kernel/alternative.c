@@ -672,7 +672,7 @@ void *text_poke(void *addr, const void *opcode, size_t len)
 	unsigned long flags;
 	char *vaddr;
 	struct page *pages[2];
-	int i;
+	size_t i;
 
 	if (!core_kernel_text((unsigned long)addr)) {
 		pages[0] = vmalloc_to_page(addr);
