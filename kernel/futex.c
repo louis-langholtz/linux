@@ -901,7 +901,7 @@ static int attach_to_pi_owner(u32 uval, union futex_key *key,
 	if (!p)
 		return -ESRCH;
 
-	if (!p->mm) {
+	if (unlikely(p->flags & PF_KTHREAD)) {
 		put_task_struct(p);
 		return -EPERM;
 	}
@@ -1812,13 +1812,13 @@ static inline void queue_me(struct futex_q *q, struct futex_hash_bucket *hb)
  * be paired with exactly one earlier call to queue_me().
  *
  * Return:
- *   1 - if the futex_q was still queued (and we removed unqueued it);
- *   0 - if the futex_q was already removed by the waking thread
+ *   true - if the futex_q was still queued (and we removed unqueued it);
+ *   false - if the futex_q was already removed by the waking thread
  */
-static int unqueue_me(struct futex_q *q)
+static bool unqueue_me(struct futex_q *q)
 {
 	spinlock_t *lock_ptr;
-	int ret = 0;
+	bool ret = false;
 
 	/* In the common case we don't take the spinlock, which is nice. */
 retry:
@@ -1848,7 +1848,7 @@ retry:
 		BUG_ON(q->pi_state);
 
 		spin_unlock(lock_ptr);
-		ret = 1;
+		ret = true;
 	}
 
 	drop_futex_key_refs(&q->key);
@@ -2218,7 +2218,7 @@ retry:
 	if (!abs_time)
 		goto out;
 
-	restart = &current_thread_info()->restart_block;
+	restart = &current->restart_block;
 	restart->fn = futex_wait_restart;
 	restart->futex.uaddr = uaddr;
 	restart->futex.val = val;
@@ -2259,7 +2259,7 @@ static long futex_wait_restart(struct restart_block *restart)
  * if there are waiters then it will block, it does PI, etc. (Due to
  * races the kernel might see a 0 value of the futex too.)
  */
-static int futex_lock_pi(u32 __user *uaddr, unsigned int flags, int detect,
+static int futex_lock_pi(u32 __user *uaddr, unsigned int flags,
 			 ktime_t *time, bool trylock)
 {
 	struct hrtimer_sleeper timeout, *to = NULL;
@@ -2954,11 +2954,11 @@ long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
 	case FUTEX_WAKE_OP:
 		return futex_wake_op(uaddr, flags, uaddr2, val, val2, val3);
 	case FUTEX_LOCK_PI:
-		return futex_lock_pi(uaddr, flags, val, timeout, false);
+		return futex_lock_pi(uaddr, flags, timeout, false);
 	case FUTEX_UNLOCK_PI:
 		return futex_unlock_pi(uaddr, flags);
 	case FUTEX_TRYLOCK_PI:
-		return futex_lock_pi(uaddr, flags, 0, timeout, true);
+		return futex_lock_pi(uaddr, flags, NULL, true);
 	case FUTEX_WAIT_REQUEUE_PI:
 		val3 = FUTEX_BITSET_MATCH_ANY;
 		return futex_wait_requeue_pi(uaddr, flags, val, timeout, val3,

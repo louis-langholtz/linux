@@ -38,7 +38,7 @@
 #define TASKSTATS_CPUMASK_MAXLEN	(100+6*NR_CPUS)
 
 static DEFINE_PER_CPU(__u32, taskstats_seqnum);
-static bool family_registered;
+static int family_registered;
 struct kmem_cache *taskstats_cache;
 
 static struct genl_family family = {
@@ -111,13 +111,8 @@ static int send_reply(struct sk_buff *skb, struct genl_info *info)
 {
 	struct genlmsghdr *genlhdr = nlmsg_data(nlmsg_hdr(skb));
 	void *reply = genlmsg_data(genlhdr);
-	int rc;
 
-	rc = genlmsg_end(skb, reply);
-	if (rc < 0) {
-		nlmsg_free(skb);
-		return rc;
-	}
+	genlmsg_end(skb, reply);
 
 	return genlmsg_reply(skb, info);
 }
@@ -134,11 +129,7 @@ static void send_cpu_listeners(struct sk_buff *skb,
 	void *reply = genlmsg_data(genlhdr);
 	int rc, delcount = 0;
 
-	rc = genlmsg_end(skb, reply);
-	if (rc < 0) {
-		nlmsg_free(skb);
-		return;
-	}
+	genlmsg_end(skb, reply);
 
 	rc = 0;
 	down_read(&listeners->sem);
@@ -707,7 +698,7 @@ static int __init taskstats_init(void)
 	if (rc)
 		return rc;
 
-	family_registered = true;
+	family_registered = 1;
 	pr_info("registered taskstats version %d\n", TASKSTATS_GENL_VERSION);
 	return 0;
 }

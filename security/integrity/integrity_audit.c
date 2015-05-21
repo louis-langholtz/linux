@@ -15,7 +15,7 @@
 #include <linux/audit.h>
 #include "integrity.h"
 
-static bool integrity_audit_info;
+static int integrity_audit_info;
 
 /* ima_audit_setup - enable informational auditing messages */
 static int __init integrity_audit_setup(char *str)
@@ -23,7 +23,7 @@ static int __init integrity_audit_setup(char *str)
 	unsigned long audit;
 
 	if (!kstrtoul(str, 0, &audit))
-		integrity_audit_info = !!audit;
+		integrity_audit_info = audit? 1 : 0;
 	return 1;
 }
 __setup("integrity_audit=", integrity_audit_setup);

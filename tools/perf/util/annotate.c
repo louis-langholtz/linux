@@ -30,6 +30,8 @@ static int disasm_line__parse(char *line, char **namep, char **rawp);
 
 static void ins__delete(struct ins_operands *ops)
 {
+	if (ops == NULL)
+		return;
 	zfree(&ops->source.raw);
 	zfree(&ops->source.name);
 	zfree(&ops->target.raw);
@@ -177,14 +179,17 @@ static int lock__parse(struct ins_operands *ops)
 		goto out_free_ops;
 
 	ops->locked.ins = ins__find(name);
+	free(name);
+
 	if (ops->locked.ins == NULL)
 		goto out_free_ops;
 
 	if (!ops->locked.ins->ops)
 		return 0;
 
-	if (ops->locked.ins->ops->parse)
-		ops->locked.ins->ops->parse(ops->locked.ops);
+	if (ops->locked.ins->ops->parse &&
+	    ops->locked.ins->ops->parse(ops->locked.ops) < 0)
+		goto out_free_ops;
 
 	return 0;
 
@@ -208,6 +213,13 @@ static int lock__scnprintf(struct ins *ins, char *bf, size_t size,
 
 static void lock__delete(struct ins_operands *ops)
 {
+	struct ins *ins = ops->locked.ins;
+
+	if (ins && ins->ops->free)
+		ins->ops->free(ops->locked.ops);
+	else
+		ins__delete(ops->locked.ops);
+
 	zfree(&ops->locked.ops);
 	zfree(&ops->target.raw);
 	zfree(&ops->target.name);
@@ -229,7 +241,7 @@ static int mov__parse(struct ins_operands *ops)
 	*s = '\0';
 	ops->source.raw = strdup(ops->raw);
 	*s = ',';
-	
+
 	if (ops->source.raw == NULL)
 		return -1;
 
@@ -531,8 +543,8 @@ static void disasm_line__init_ins(struct disasm_line *dl)
 	if (!dl->ins->ops)
 		return;
 
-	if (dl->ins->ops->parse)
-		dl->ins->ops->parse(&dl->ops);
+	if (dl->ins->ops->parse && dl->ins->ops->parse(&dl->ops) < 0)
+		dl->ins = NULL;
 }
 
 static int disasm_line__parse(char *line, char **namep, char **rawp)
@@ -998,6 +1010,32 @@ fallback:
 			}
 			filename = symfs_filename;
 		}
+	} else if (dso__needs_decompress(dso)) {
+		char tmp[PATH_MAX];
+		struct kmod_path m;
+		int fd;
+		bool ret;
+
+		if (kmod_path__parse_ext(&m, symfs_filename))
+			goto out_free_filename;
+
+		snprintf(tmp, PATH_MAX, "/tmp/perf-kmod-XXXXXX");
+
+		fd = mkstemp(tmp);
+		if (fd < 0) {
+			free(m.ext);
+			goto out_free_filename;
+		}
+
+		ret = decompress_to_file(m.ext, symfs_filename, fd);
+
+		free(m.ext);
+		close(fd);
+
+		if (!ret)
+			goto out_free_filename;
+
+		strcpy(symfs_filename, tmp);
 	}
 
 	snprintf(command, sizeof(command),
@@ -1017,7 +1055,7 @@ fallback:
 
 	file = popen(command, "r");
 	if (!file)
-		goto out_free_filename;
+		goto out_remove_tmp;
 
 	while (!feof(file))
 		if (symbol__parse_objdump_line(sym, map, file, privsize,
@@ -1032,6 +1070,10 @@ fallback:
 		delete_last_nop(sym);
 
 	pclose(file);
+
+out_remove_tmp:
+	if (dso__needs_decompress(dso))
+		unlink(symfs_filename);
 out_free_filename:
 	if (delete_extract)
 		kcore_extract__delete(&kce);
