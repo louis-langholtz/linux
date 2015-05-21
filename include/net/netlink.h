@@ -379,7 +379,7 @@ static inline int nlmsg_parse(const struct nlmsghdr *nlh, int hdrlen,
 /**
  * nlmsg_find_attr - find a specific attribute in a netlink message
  * @nlh: netlink message header
- * @hdrlen: length of familiy specific header
+ * @hdrlen: length of family specific header
  * @attrtype: type of attribute to look for
  *
  * Returns the first attribute which matches the specified type.
@@ -394,7 +394,7 @@ static inline struct nlattr *nlmsg_find_attr(const struct nlmsghdr *nlh,
 /**
  * nlmsg_validate - validate a netlink message including attributes
  * @nlh: netlinket message header
- * @hdrlen: length of familiy specific header
+ * @hdrlen: length of family specific header
  * @maxtype: maximum attribute type to be expected
  * @policy: validation policy
  */
@@ -424,7 +424,7 @@ static inline int nlmsg_report(const struct nlmsghdr *nlh)
  * nlmsg_for_each_attr - iterate over a stream of attributes
  * @pos: loop counter, set to current attribute
  * @nlh: netlink message header
- * @hdrlen: length of familiy specific header
+ * @hdrlen: length of family specific header
  * @rem: initialized to len, holds bytes currently remaining in stream
  */
 #define nlmsg_for_each_attr(pos, nlh, hdrlen, rem) \

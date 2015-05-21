@@ -2,7 +2,7 @@
 /include/ "pxa2xx.dtsi"
 
 / {
-	model = "Marvell PXA3xx familiy SoC";
+	model = "Marvell PXA3xx family SoC";
 	compatible = "marvell,pxa3xx";
 
 	pxabus {

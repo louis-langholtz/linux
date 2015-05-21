@@ -3,7 +3,7 @@
 #include "dt-bindings/clock/pxa2xx-clock.h"
 
 / {
-	model = "Marvell PXA27x familiy SoC";
+	model = "Marvell PXA27x family SoC";
 	compatible = "marvell,pxa27x";
 
 	pxabus {
