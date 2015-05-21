@@ -171,7 +171,7 @@ int first_system_vector = FIRST_SYSTEM_VECTOR;
 /*
  * Debug level, exported for io_apic.c
  */
-unsigned int apic_verbosity;
+enum apic_verbosity_level apic_verbosity;
 
 int pic_mode;
 
