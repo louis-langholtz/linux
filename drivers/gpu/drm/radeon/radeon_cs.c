@@ -88,7 +88,7 @@ static int radeon_cs_parser_relocs(struct radeon_cs_parser *p)
 	p->dma_reloc_idx = 0;
 	/* FIXME: we assume that each relocs use 4 dwords */
 	p->nrelocs = chunk->length_dw / 4;
-	p->relocs = kcalloc(p->nrelocs, sizeof(struct radeon_bo_list), GFP_KERNEL);
+	p->relocs = drm_calloc_large(p->nrelocs, sizeof(struct radeon_bo_list));
 	if (p->relocs == NULL) {
 		return -ENOMEM;
 	}
@@ -256,11 +256,13 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
 	u32 ring = RADEON_CS_RING_GFX;
 	s32 priority = 0;
 
+	INIT_LIST_HEAD(&p->validated);
+
 	if (!cs->num_chunks) {
 		return 0;
 	}
+
 	/* get chunks */
-	INIT_LIST_HEAD(&p->validated);
 	p->idx = 0;
 	p->ib.sa_bo = NULL;
 	p->const_ib.sa_bo = NULL;
@@ -426,7 +428,7 @@ static void radeon_cs_parser_fini(struct radeon_cs_parser *parser, int error, bo
 		}
 	}
 	kfree(parser->track);
-	kfree(parser->relocs);
+	drm_free_large(parser->relocs);
 	drm_free_large(parser->vm_bos);
 	for (i = 0; i < parser->nchunks; i++)
 		drm_free_large(parser->chunks[i].kdata);
