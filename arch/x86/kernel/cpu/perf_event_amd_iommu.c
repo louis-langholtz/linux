@@ -342,7 +342,6 @@ static void perf_iommu_read(struct perf_event *event)
 static void perf_iommu_stop(struct perf_event *event, int flags)
 {
 	struct hw_perf_event *hwc = &event->hw;
-	u64 config;
 
 	pr_debug("perf: amd_iommu:perf_iommu_stop\n");
 
@@ -356,7 +355,6 @@ static void perf_iommu_stop(struct perf_event *event, int flags)
 	if (hwc->state & PERF_HES_UPTODATE)
 		return;
 
-	config = hwc->config;
 	perf_iommu_read(event);
 	hwc->state |= PERF_HES_UPTODATE;
 }
