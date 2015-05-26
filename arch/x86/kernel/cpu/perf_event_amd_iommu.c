@@ -209,7 +209,7 @@ static int perf_iommu_event_init(struct perf_event *event)
 	 * Therefore, it does not support per-process mode.
 	 * Also, it does not support event sampling mode.
 	 */
-	if (is_sampling_event(event) || event->attach_state & PERF_ATTACH_TASK)
+	if (is_sampling_event(event) || (event->attach_state & PERF_ATTACH_TASK))
 		return -EINVAL;
 
 	/* IOMMU counters do not have usr/os/guest/host bits */
