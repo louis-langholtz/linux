@@ -1274,7 +1274,7 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	 * from creating siblings.
 	 */
 	if ((clone_flags & CLONE_PARENT) &&
-				current->signal->flags & SIGNAL_UNKILLABLE)
+				(current->signal->flags & SIGNAL_UNKILLABLE))
 		return ERR_PTR(-EINVAL);
 
 	/*
