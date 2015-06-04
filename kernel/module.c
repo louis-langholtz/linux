@@ -2232,7 +2232,7 @@ static char elf_type(const Elf_Sym *sym, const struct load_info *info)
 		return '?';
 	if (sechdrs[sym->st_shndx].sh_flags & SHF_EXECINSTR)
 		return 't';
-	if (sechdrs[sym->st_shndx].sh_flags & SHF_ALLOC
+	if ((sechdrs[sym->st_shndx].sh_flags & SHF_ALLOC)
 	    && sechdrs[sym->st_shndx].sh_type != SHT_NOBITS) {
 		if (!(sechdrs[sym->st_shndx].sh_flags & SHF_WRITE))
 			return 'r';
