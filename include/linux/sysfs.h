@@ -211,7 +211,7 @@ int __must_check sysfs_move_dir_ns(struct kobject *kobj,
 				   struct kobject *new_parent_kobj,
 				   const void *new_ns);
 
-int __must_check sysfs_create_file_ns(struct kobject *kobj,
+int sysfs_create_file_ns(struct kobject *kobj,
 				      const struct attribute *attr,
 				      const void *ns);
 int __must_check sysfs_create_files(struct kobject *kobj,
@@ -452,7 +452,7 @@ static inline void sysfs_enable_ns(struct kernfs_node *kn)
 
 #endif /* CONFIG_SYSFS */
 
-static inline int __must_check sysfs_create_file(struct kobject *kobj,
+static inline int sysfs_create_file(struct kobject *kobj,
 						 const struct attribute *attr)
 {
 	return sysfs_create_file_ns(kobj, attr, NULL);
