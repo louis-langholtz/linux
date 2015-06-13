@@ -845,13 +845,15 @@ static void __init version_sysfs_builtin(void)
 {
 	const struct module_version_attribute **p;
 	struct module_kobject *mk;
+	int err;
 
 	for (p = __start___modver; p < __stop___modver; p++) {
 		const struct module_version_attribute *vattr = *p;
 
 		mk = locate_module_kobject(vattr->module_name);
 		if (mk) {
-			sysfs_create_file(&mk->kobj, &vattr->mattr.attr);
+			err = sysfs_create_file(&mk->kobj, &vattr->mattr.attr);
+			WARN_ON_ONCE(err);
 			kobject_uevent(&mk->kobj, KOBJ_ADD);
 			kobject_put(&mk->kobj);
 		}
